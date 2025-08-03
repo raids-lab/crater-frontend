@@ -114,7 +114,7 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
-    "dotenv-cli": "^7.4.4",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
