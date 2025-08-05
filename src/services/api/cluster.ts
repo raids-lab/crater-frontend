@@ -108,6 +108,4 @@ export const apichangeNodeScheduling = (name: string) =>
 export const apiAddNodeTaint = (nodetaint: IClusterNodeTaint) =>
   apiV1Post<IResponse<string>>(`/nodes/${nodetaint.name}/taint`, nodetaint)
 export const apiDeleteNodeTaint = (nodetaint: IClusterNodeTaint) =>
-  apiV1Delete<IResponse<string>>(`/nodes/${nodetaint.name}/taint`, {
-    data: nodetaint,
-  })
+  apiV1Delete<IResponse<string>>(`/nodes/${nodetaint.name}/taint`, nodetaint)
