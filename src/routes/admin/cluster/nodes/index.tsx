@@ -46,6 +46,7 @@ import { getNodeColumns, nodesToolbarConfig } from '@/components/node/node-list'
 import { DataTable } from '@/components/query-table'
 
 import {
+  IClusterNodeTaint,
   NodeStatus,
   apiAddNodeTaint,
   apiDeleteNodeTaint,
@@ -98,7 +99,13 @@ function NodesForAdmin() {
   )
 
   const { mutate: addNodeTaint } = useMutation({
-    mutationFn: apiAddNodeTaint,
+    mutationFn: ({
+      nodeName,
+      taintContent,
+    }: {
+      nodeName: string
+      taintContent: IClusterNodeTaint
+    }) => apiAddNodeTaint(nodeName, taintContent),
     onSuccess: async () => {
       await refetchTaskList()
       toast.success(t('nodeManagement.occupationSuccess'))
@@ -109,7 +116,13 @@ function NodesForAdmin() {
   })
 
   const { mutate: deleteNodeTaint } = useMutation({
-    mutationFn: apiDeleteNodeTaint,
+    mutationFn: ({
+      nodeName,
+      taintContent,
+    }: {
+      nodeName: string
+      taintContent: IClusterNodeTaint
+    }) => apiDeleteNodeTaint(nodeName, taintContent),
     onSuccess: async () => {
       await refetchTaskList()
       toast.success(t('nodeManagement.releaseSuccess'))
@@ -122,15 +135,15 @@ function NodesForAdmin() {
   const nodeQuery = useQuery(queryNodes())
 
   const handleOccupation = useCallback(() => {
-    const taintcontent = `crater.raids.io/account=${selectedAccount}:NoSchedule`
-    const taint = {
-      name: selectedNode,
-      taint: taintcontent,
+    const taintContent: IClusterNodeTaint = {
+      key: 'crater.raids.io/account',
+      value: selectedAccount,
+      effect: 'NoSchedule',
     }
     if (isOccupation) {
-      addNodeTaint(taint)
+      addNodeTaint({ nodeName: selectedNode, taintContent })
     } else {
-      deleteNodeTaint(taint)
+      deleteNodeTaint({ nodeName: selectedNode, taintContent })
     }
     setOpen(false)
   }, [selectedAccount, selectedNode, isOccupation, addNodeTaint, deleteNodeTaint])
