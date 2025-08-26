@@ -19,19 +19,23 @@ import { Route as PortalUsersRouteRouteImport } from './routes/portal/users/rout
 import { Route as PortalTemplatesRouteRouteImport } from './routes/portal/templates/route'
 import { Route as PortalSettingsRouteRouteImport } from './routes/portal/settings/route'
 import { Route as PortalOverviewRouteRouteImport } from './routes/portal/overview/route'
+import { Route as PortalApprovalorderRouteRouteImport } from './routes/portal/approvalorder/route'
 import { Route as AdminUsersRouteRouteImport } from './routes/admin/users/route'
 import { Route as AdminJobsRouteRouteImport } from './routes/admin/jobs/route'
 import { Route as AdminDataRouteRouteImport } from './routes/admin/data/route'
+import { Route as AdminApprovalorderRouteRouteImport } from './routes/admin/approvalorder/route'
 import { Route as AdminAccountsRouteRouteImport } from './routes/admin/accounts/route'
 import { Route as PortalUsersIndexRouteImport } from './routes/portal/users/index'
 import { Route as PortalTemplatesIndexRouteImport } from './routes/portal/templates/index'
 import { Route as PortalSettingsIndexRouteImport } from './routes/portal/settings/index'
 import { Route as PortalOverviewIndexRouteImport } from './routes/portal/overview/index'
+import { Route as PortalApprovalorderIndexRouteImport } from './routes/portal/approvalorder/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin/settings/index'
 import { Route as AdminJobsIndexRouteImport } from './routes/admin/jobs/index'
 import { Route as AdminDataIndexRouteImport } from './routes/admin/data/index'
 import { Route as AdminCronjobsIndexRouteImport } from './routes/admin/cronjobs/index'
+import { Route as AdminApprovalorderIndexRouteImport } from './routes/admin/approvalorder/index'
 import { Route as AdminAccountsIndexRouteImport } from './routes/admin/accounts/index'
 import { Route as PortalUsersNameRouteImport } from './routes/portal/users/$name'
 import { Route as PortalSettingsUserRouteImport } from './routes/portal/settings/user'
@@ -48,6 +52,7 @@ import { Route as AdminMonitorGpuRouteImport } from './routes/admin/monitor/gpu'
 import { Route as AdminJobsNameRouteImport } from './routes/admin/jobs/$name'
 import { Route as AdminFilesSplatRouteImport } from './routes/admin/files/$'
 import { Route as AdminDataIdRouteImport } from './routes/admin/data/$id'
+import { Route as AdminApprovalorderIdRouteImport } from './routes/admin/approvalorder/$id'
 import { Route as AdminAccountsIdRouteImport } from './routes/admin/accounts/$id'
 import { Route as PortalJobsNewRouteRouteImport } from './routes/portal/jobs/new/route'
 import { Route as PortalJobsDetailRouteRouteImport } from './routes/portal/jobs/detail/route'
@@ -133,6 +138,12 @@ const PortalOverviewRouteRoute = PortalOverviewRouteRouteImport.update({
   path: '/overview',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const PortalApprovalorderRouteRoute =
+  PortalApprovalorderRouteRouteImport.update({
+    id: '/approvalorder',
+    path: '/approvalorder',
+    getParentRoute: () => PortalRouteRoute,
+  } as any)
 const AdminUsersRouteRoute = AdminUsersRouteRouteImport.update({
   id: '/users',
   path: '/users',
@@ -146,6 +157,11 @@ const AdminJobsRouteRoute = AdminJobsRouteRouteImport.update({
 const AdminDataRouteRoute = AdminDataRouteRouteImport.update({
   id: '/data',
   path: '/data',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminApprovalorderRouteRoute = AdminApprovalorderRouteRouteImport.update({
+  id: '/approvalorder',
+  path: '/approvalorder',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminAccountsRouteRoute = AdminAccountsRouteRouteImport.update({
@@ -173,6 +189,12 @@ const PortalOverviewIndexRoute = PortalOverviewIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PortalOverviewRouteRoute,
 } as any)
+const PortalApprovalorderIndexRoute =
+  PortalApprovalorderIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => PortalApprovalorderRouteRoute,
+  } as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -197,6 +219,11 @@ const AdminCronjobsIndexRoute = AdminCronjobsIndexRouteImport.update({
   id: '/cronjobs/',
   path: '/cronjobs/',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminApprovalorderIndexRoute = AdminApprovalorderIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminApprovalorderRouteRoute,
 } as any)
 const AdminAccountsIndexRoute = AdminAccountsIndexRouteImport.update({
   id: '/',
@@ -277,6 +304,11 @@ const AdminDataIdRoute = AdminDataIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AdminDataRouteRoute,
+} as any)
+const AdminApprovalorderIdRoute = AdminApprovalorderIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminApprovalorderRouteRoute,
 } as any)
 const AdminAccountsIdRoute = AdminAccountsIdRouteImport.update({
   id: '/$id',
@@ -459,9 +491,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/portal': typeof PortalRouteRouteWithChildren
   '/admin/accounts': typeof AdminAccountsRouteRouteWithChildren
+  '/admin/approvalorder': typeof AdminApprovalorderRouteRouteWithChildren
   '/admin/data': typeof AdminDataRouteRouteWithChildren
   '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
+  '/portal/approvalorder': typeof PortalApprovalorderRouteRouteWithChildren
   '/portal/overview': typeof PortalOverviewRouteRouteWithChildren
   '/portal/settings': typeof PortalSettingsRouteRouteWithChildren
   '/portal/templates': typeof PortalTemplatesRouteRouteWithChildren
@@ -478,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/portal/jobs/detail': typeof PortalJobsDetailRouteRouteWithChildren
   '/portal/jobs/new': typeof PortalJobsNewRouteRouteWithChildren
   '/admin/accounts/$id': typeof AdminAccountsIdRoute
+  '/admin/approvalorder/$id': typeof AdminApprovalorderIdRoute
   '/admin/data/$id': typeof AdminDataIdRoute
   '/admin/files/$': typeof AdminFilesSplatRoute
   '/admin/jobs/$name': typeof AdminJobsNameRoute
@@ -494,11 +529,13 @@ export interface FileRoutesByFullPath {
   '/portal/settings/user': typeof PortalSettingsUserRoute
   '/portal/users/$name': typeof PortalUsersNameRoute
   '/admin/accounts/': typeof AdminAccountsIndexRoute
+  '/admin/approvalorder/': typeof AdminApprovalorderIndexRoute
   '/admin/cronjobs': typeof AdminCronjobsIndexRoute
   '/admin/data/': typeof AdminDataIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/portal/approvalorder/': typeof PortalApprovalorderIndexRoute
   '/portal/overview/': typeof PortalOverviewIndexRoute
   '/portal/settings/': typeof PortalSettingsIndexRoute
   '/portal/templates/': typeof PortalTemplatesIndexRoute
@@ -537,6 +574,7 @@ export interface FileRoutesByTo {
   '/portal/jobs/detail': typeof PortalJobsDetailRouteRouteWithChildren
   '/portal/jobs/new': typeof PortalJobsNewRouteRouteWithChildren
   '/admin/accounts/$id': typeof AdminAccountsIdRoute
+  '/admin/approvalorder/$id': typeof AdminApprovalorderIdRoute
   '/admin/data/$id': typeof AdminDataIdRoute
   '/admin/files/$': typeof AdminFilesSplatRoute
   '/admin/jobs/$name': typeof AdminJobsNameRoute
@@ -553,11 +591,13 @@ export interface FileRoutesByTo {
   '/portal/settings/user': typeof PortalSettingsUserRoute
   '/portal/users/$name': typeof PortalUsersNameRoute
   '/admin/accounts': typeof AdminAccountsIndexRoute
+  '/admin/approvalorder': typeof AdminApprovalorderIndexRoute
   '/admin/cronjobs': typeof AdminCronjobsIndexRoute
   '/admin/data': typeof AdminDataIndexRoute
   '/admin/jobs': typeof AdminJobsIndexRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/portal/approvalorder': typeof PortalApprovalorderIndexRoute
   '/portal/overview': typeof PortalOverviewIndexRoute
   '/portal/settings': typeof PortalSettingsIndexRoute
   '/portal/templates': typeof PortalTemplatesIndexRoute
@@ -594,9 +634,11 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteRouteWithChildren
   '/portal': typeof PortalRouteRouteWithChildren
   '/admin/accounts': typeof AdminAccountsRouteRouteWithChildren
+  '/admin/approvalorder': typeof AdminApprovalorderRouteRouteWithChildren
   '/admin/data': typeof AdminDataRouteRouteWithChildren
   '/admin/jobs': typeof AdminJobsRouteRouteWithChildren
   '/admin/users': typeof AdminUsersRouteRouteWithChildren
+  '/portal/approvalorder': typeof PortalApprovalorderRouteRouteWithChildren
   '/portal/overview': typeof PortalOverviewRouteRouteWithChildren
   '/portal/settings': typeof PortalSettingsRouteRouteWithChildren
   '/portal/templates': typeof PortalTemplatesRouteRouteWithChildren
@@ -613,6 +655,7 @@ export interface FileRoutesById {
   '/portal/jobs/detail': typeof PortalJobsDetailRouteRouteWithChildren
   '/portal/jobs/new': typeof PortalJobsNewRouteRouteWithChildren
   '/admin/accounts/$id': typeof AdminAccountsIdRoute
+  '/admin/approvalorder/$id': typeof AdminApprovalorderIdRoute
   '/admin/data/$id': typeof AdminDataIdRoute
   '/admin/files/$': typeof AdminFilesSplatRoute
   '/admin/jobs/$name': typeof AdminJobsNameRoute
@@ -629,11 +672,13 @@ export interface FileRoutesById {
   '/portal/settings/user': typeof PortalSettingsUserRoute
   '/portal/users/$name': typeof PortalUsersNameRoute
   '/admin/accounts/': typeof AdminAccountsIndexRoute
+  '/admin/approvalorder/': typeof AdminApprovalorderIndexRoute
   '/admin/cronjobs/': typeof AdminCronjobsIndexRoute
   '/admin/data/': typeof AdminDataIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/portal/approvalorder/': typeof PortalApprovalorderIndexRoute
   '/portal/overview/': typeof PortalOverviewIndexRoute
   '/portal/settings/': typeof PortalSettingsIndexRoute
   '/portal/templates/': typeof PortalTemplatesIndexRoute
@@ -671,9 +716,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/portal'
     | '/admin/accounts'
+    | '/admin/approvalorder'
     | '/admin/data'
     | '/admin/jobs'
     | '/admin/users'
+    | '/portal/approvalorder'
     | '/portal/overview'
     | '/portal/settings'
     | '/portal/templates'
@@ -690,6 +737,7 @@ export interface FileRouteTypes {
     | '/portal/jobs/detail'
     | '/portal/jobs/new'
     | '/admin/accounts/$id'
+    | '/admin/approvalorder/$id'
     | '/admin/data/$id'
     | '/admin/files/$'
     | '/admin/jobs/$name'
@@ -706,11 +754,13 @@ export interface FileRouteTypes {
     | '/portal/settings/user'
     | '/portal/users/$name'
     | '/admin/accounts/'
+    | '/admin/approvalorder/'
     | '/admin/cronjobs'
     | '/admin/data/'
     | '/admin/jobs/'
     | '/admin/settings'
     | '/admin/users/'
+    | '/portal/approvalorder/'
     | '/portal/overview/'
     | '/portal/settings/'
     | '/portal/templates/'
@@ -749,6 +799,7 @@ export interface FileRouteTypes {
     | '/portal/jobs/detail'
     | '/portal/jobs/new'
     | '/admin/accounts/$id'
+    | '/admin/approvalorder/$id'
     | '/admin/data/$id'
     | '/admin/files/$'
     | '/admin/jobs/$name'
@@ -765,11 +816,13 @@ export interface FileRouteTypes {
     | '/portal/settings/user'
     | '/portal/users/$name'
     | '/admin/accounts'
+    | '/admin/approvalorder'
     | '/admin/cronjobs'
     | '/admin/data'
     | '/admin/jobs'
     | '/admin/settings'
     | '/admin/users'
+    | '/portal/approvalorder'
     | '/portal/overview'
     | '/portal/settings'
     | '/portal/templates'
@@ -805,9 +858,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/portal'
     | '/admin/accounts'
+    | '/admin/approvalorder'
     | '/admin/data'
     | '/admin/jobs'
     | '/admin/users'
+    | '/portal/approvalorder'
     | '/portal/overview'
     | '/portal/settings'
     | '/portal/templates'
@@ -824,6 +879,7 @@ export interface FileRouteTypes {
     | '/portal/jobs/detail'
     | '/portal/jobs/new'
     | '/admin/accounts/$id'
+    | '/admin/approvalorder/$id'
     | '/admin/data/$id'
     | '/admin/files/$'
     | '/admin/jobs/$name'
@@ -840,11 +896,13 @@ export interface FileRouteTypes {
     | '/portal/settings/user'
     | '/portal/users/$name'
     | '/admin/accounts/'
+    | '/admin/approvalorder/'
     | '/admin/cronjobs/'
     | '/admin/data/'
     | '/admin/jobs/'
     | '/admin/settings/'
     | '/admin/users/'
+    | '/portal/approvalorder/'
     | '/portal/overview/'
     | '/portal/settings/'
     | '/portal/templates/'
@@ -956,6 +1014,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalOverviewRouteRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/portal/approvalorder': {
+      id: '/portal/approvalorder'
+      path: '/approvalorder'
+      fullPath: '/portal/approvalorder'
+      preLoaderRoute: typeof PortalApprovalorderRouteRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -975,6 +1040,13 @@ declare module '@tanstack/react-router' {
       path: '/data'
       fullPath: '/admin/data'
       preLoaderRoute: typeof AdminDataRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/approvalorder': {
+      id: '/admin/approvalorder'
+      path: '/approvalorder'
+      fullPath: '/admin/approvalorder'
+      preLoaderRoute: typeof AdminApprovalorderRouteRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/accounts': {
@@ -1012,6 +1084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalOverviewIndexRouteImport
       parentRoute: typeof PortalOverviewRouteRoute
     }
+    '/portal/approvalorder/': {
+      id: '/portal/approvalorder/'
+      path: '/'
+      fullPath: '/portal/approvalorder/'
+      preLoaderRoute: typeof PortalApprovalorderIndexRouteImport
+      parentRoute: typeof PortalApprovalorderRouteRoute
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/'
@@ -1046,6 +1125,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/cronjobs'
       preLoaderRoute: typeof AdminCronjobsIndexRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/approvalorder/': {
+      id: '/admin/approvalorder/'
+      path: '/'
+      fullPath: '/admin/approvalorder/'
+      preLoaderRoute: typeof AdminApprovalorderIndexRouteImport
+      parentRoute: typeof AdminApprovalorderRouteRoute
     }
     '/admin/accounts/': {
       id: '/admin/accounts/'
@@ -1158,6 +1244,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/data/$id'
       preLoaderRoute: typeof AdminDataIdRouteImport
       parentRoute: typeof AdminDataRouteRoute
+    }
+    '/admin/approvalorder/$id': {
+      id: '/admin/approvalorder/$id'
+      path: '/$id'
+      fullPath: '/admin/approvalorder/$id'
+      preLoaderRoute: typeof AdminApprovalorderIdRouteImport
+      parentRoute: typeof AdminApprovalorderRouteRoute
     }
     '/admin/accounts/$id': {
       id: '/admin/accounts/$id'
@@ -1413,6 +1506,22 @@ const AdminAccountsRouteRouteChildren: AdminAccountsRouteRouteChildren = {
 const AdminAccountsRouteRouteWithChildren =
   AdminAccountsRouteRoute._addFileChildren(AdminAccountsRouteRouteChildren)
 
+interface AdminApprovalorderRouteRouteChildren {
+  AdminApprovalorderIdRoute: typeof AdminApprovalorderIdRoute
+  AdminApprovalorderIndexRoute: typeof AdminApprovalorderIndexRoute
+}
+
+const AdminApprovalorderRouteRouteChildren: AdminApprovalorderRouteRouteChildren =
+  {
+    AdminApprovalorderIdRoute: AdminApprovalorderIdRoute,
+    AdminApprovalorderIndexRoute: AdminApprovalorderIndexRoute,
+  }
+
+const AdminApprovalorderRouteRouteWithChildren =
+  AdminApprovalorderRouteRoute._addFileChildren(
+    AdminApprovalorderRouteRouteChildren,
+  )
+
 interface AdminDataRouteRouteChildren {
   AdminDataIdRoute: typeof AdminDataIdRoute
   AdminDataIndexRoute: typeof AdminDataIndexRoute
@@ -1502,6 +1611,7 @@ const AdminEnvRegistryRouteRouteWithChildren =
 
 interface AdminRouteRouteChildren {
   AdminAccountsRouteRoute: typeof AdminAccountsRouteRouteWithChildren
+  AdminApprovalorderRouteRoute: typeof AdminApprovalorderRouteRouteWithChildren
   AdminDataRouteRoute: typeof AdminDataRouteRouteWithChildren
   AdminJobsRouteRoute: typeof AdminJobsRouteRouteWithChildren
   AdminUsersRouteRoute: typeof AdminUsersRouteRouteWithChildren
@@ -1520,6 +1630,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAccountsRouteRoute: AdminAccountsRouteRouteWithChildren,
+  AdminApprovalorderRouteRoute: AdminApprovalorderRouteRouteWithChildren,
   AdminDataRouteRoute: AdminDataRouteRouteWithChildren,
   AdminJobsRouteRoute: AdminJobsRouteRouteWithChildren,
   AdminUsersRouteRoute: AdminUsersRouteRouteWithChildren,
@@ -1539,6 +1650,20 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
+
+interface PortalApprovalorderRouteRouteChildren {
+  PortalApprovalorderIndexRoute: typeof PortalApprovalorderIndexRoute
+}
+
+const PortalApprovalorderRouteRouteChildren: PortalApprovalorderRouteRouteChildren =
+  {
+    PortalApprovalorderIndexRoute: PortalApprovalorderIndexRoute,
+  }
+
+const PortalApprovalorderRouteRouteWithChildren =
+  PortalApprovalorderRouteRoute._addFileChildren(
+    PortalApprovalorderRouteRouteChildren,
+  )
 
 interface PortalOverviewRouteRouteChildren {
   PortalOverviewNodeRoute: typeof PortalOverviewNodeRoute
@@ -1673,6 +1798,7 @@ const PortalJobsNewRouteRouteWithChildren =
   PortalJobsNewRouteRoute._addFileChildren(PortalJobsNewRouteRouteChildren)
 
 interface PortalRouteRouteChildren {
+  PortalApprovalorderRouteRoute: typeof PortalApprovalorderRouteRouteWithChildren
   PortalOverviewRouteRoute: typeof PortalOverviewRouteRouteWithChildren
   PortalSettingsRouteRoute: typeof PortalSettingsRouteRouteWithChildren
   PortalTemplatesRouteRoute: typeof PortalTemplatesRouteRouteWithChildren
@@ -1695,6 +1821,7 @@ interface PortalRouteRouteChildren {
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
+  PortalApprovalorderRouteRoute: PortalApprovalorderRouteRouteWithChildren,
   PortalOverviewRouteRoute: PortalOverviewRouteRouteWithChildren,
   PortalSettingsRouteRoute: PortalSettingsRouteRouteWithChildren,
   PortalTemplatesRouteRoute: PortalTemplatesRouteRouteWithChildren,
