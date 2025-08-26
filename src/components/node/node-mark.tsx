@@ -430,6 +430,7 @@ function GenericNodeMark({ nodeName, config, standalone = false }: GenericNodeMa
   )
 }
 
+// 将三个表格同时展示在一个页面中，预留出来的接口
 export function NodeMarkList({ nodeName }: NodeMarkListProps) {
   return (
     <div className="space-y-6">
