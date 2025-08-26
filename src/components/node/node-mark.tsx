@@ -28,11 +28,13 @@ import { AddNodeMarkDialog } from '@/components/node/add-node-mark-dialog'
 import { DeleteConfirmDialog } from '@/components/node/delete-confirm-dialog'
 import { DataTable } from '@/components/query-table'
 import { DataTableColumnHeader } from '@/components/query-table/column-header'
+import { DataTableToolbarConfig } from '@/components/query-table/toolbar'
 
 import {
   type IClusterNodeAnnotation,
   type IClusterNodeLabel,
   type IClusterNodeTaint,
+  TaintEffect,
   apiAddNodeAnnotation,
   apiAddNodeLabel,
   apiAddNodeTaint,
@@ -52,6 +54,75 @@ export enum DialogType {
 
 interface NodeMarkListProps {
   nodeName: string
+}
+
+// 标记类型配置
+interface MarkTypeConfig {
+  type: DialogType
+  title: string
+  addButtonText: string
+  searchPlaceholder: string
+  columns: {
+    key: string
+    value: string
+    effect?: string
+  }
+  hasEffect: boolean
+  maxLengths: {
+    key: number
+    value: number
+    effect?: number
+  }
+}
+
+const MARK_TYPE_CONFIGS: Record<DialogType, MarkTypeConfig> = {
+  [DialogType.LABEL]: {
+    type: DialogType.LABEL,
+    title: 'Labels',
+    addButtonText: '添加 Label 标签',
+    searchPlaceholder: '搜索Label Key',
+    columns: {
+      key: 'Label名',
+      value: 'Label值',
+    },
+    hasEffect: false,
+    maxLengths: {
+      key: 50,
+      value: 50,
+    },
+  },
+  [DialogType.ANNOTATION]: {
+    type: DialogType.ANNOTATION,
+    title: 'Annotations',
+    addButtonText: '添加 Annotation 标注',
+    searchPlaceholder: '搜索Annotation Key',
+    columns: {
+      key: 'Annotation名',
+      value: 'Annotation值',
+    },
+    hasEffect: false,
+    maxLengths: {
+      key: 30,
+      value: 50,
+    },
+  },
+  [DialogType.TAINT]: {
+    type: DialogType.TAINT,
+    title: 'Taints',
+    addButtonText: '添加 Taint 污点',
+    searchPlaceholder: '搜索Taint Key',
+    columns: {
+      key: 'Taint名',
+      value: 'Taint值',
+      effect: 'Taint效果',
+    },
+    hasEffect: true,
+    maxLengths: {
+      key: 30,
+      value: 50,
+      effect: 20,
+    },
+  },
 }
 
 // 截断显示组件，带复制功能
@@ -87,757 +158,310 @@ function TruncatedCell({ value, maxLength = 30 }: { value: string; maxLength?: n
   )
 }
 
-export function NodeMarkList({ nodeName }: NodeMarkListProps) {
+// 通用的节点标记管理组件
+interface GenericNodeMarkProps {
+  nodeName: string
+  config: MarkTypeConfig
+  standalone?: boolean
+}
+
+type NodeMarkItem = IClusterNodeLabel | IClusterNodeAnnotation | IClusterNodeTaint
+
+function GenericNodeMark({ nodeName, config, standalone = false }: GenericNodeMarkProps) {
   const queryClient = useQueryClient()
 
   // 删除确认对话框状态
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean
-    type: DialogType
-    item: IClusterNodeLabel | IClusterNodeAnnotation | IClusterNodeTaint | null
+    item: NodeMarkItem | null
   }>({
     open: false,
-    type: DialogType.LABEL,
     item: null,
   })
 
-  // 创建三个独立的查询用于DataTable
-  const labelsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'labels'],
+  // 查询数据
+  const query = useQuery({
+    queryKey: ['nodes', nodeName, 'mark', config.type + 's'],
     queryFn: async () => {
       const res = await apiGetNodeMark(nodeName)
-      return res.data?.labels || []
-    },
-    enabled: !!nodeName,
-  })
-
-  const annotationsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'annotations'],
-    queryFn: async () => {
-      const res = await apiGetNodeMark(nodeName)
-      return res.data?.annotations || []
-    },
-    enabled: !!nodeName,
-  })
-
-  const taintsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'taints'],
-    queryFn: async () => {
-      const res = await apiGetNodeMark(nodeName)
-      return res.data?.taints || []
-    },
-    enabled: !!nodeName,
-  })
-
-  // Label删除mutation
-  const { mutate: deleteLabelMutate } = useMutation({
-    mutationFn: (label: IClusterNodeLabel) => apiDeleteNodeLabel(nodeName, label),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Label删除成功')
-    },
-  })
-
-  // Label添加mutation
-  const { mutate: addLabelMutate } = useMutation({
-    mutationFn: (label: IClusterNodeLabel) => apiAddNodeLabel(nodeName, label),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Label添加成功')
-    },
-  })
-
-  // Annotation删除mutation
-  const { mutate: deleteAnnotationMutate } = useMutation({
-    mutationFn: (annotation: IClusterNodeAnnotation) =>
-      apiDeleteNodeAnnotation(nodeName, annotation),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Annotation删除成功')
-    },
-  })
-
-  // Annotation添加mutation
-  const { mutate: addAnnotationMutate } = useMutation({
-    mutationFn: (annotation: IClusterNodeAnnotation) => apiAddNodeAnnotation(nodeName, annotation),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Annotation添加成功')
-    },
-  })
-
-  // Taint删除mutation
-  const { mutate: deleteTaintMutate } = useMutation({
-    mutationFn: (taint: IClusterNodeTaint) => apiDeleteNodeTaint(nodeName, taint),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Taint删除成功')
-    },
-  })
-
-  // Taint添加mutation
-  const { mutate: addTaintMutate } = useMutation({
-    mutationFn: (taint: IClusterNodeTaint) => apiAddNodeTaint(nodeName, taint),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Taint添加成功')
-    },
-  })
-
-  const handleDeleteLabel = useCallback(
-    (label: IClusterNodeLabel) => {
-      setDeleteDialog({
-        open: true,
-        type: DialogType.LABEL,
-        item: label,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddLabel = useCallback(
-    (key: string, value: string) => {
-      addLabelMutate({ key, value })
-    },
-    [addLabelMutate]
-  )
-
-  const handleDeleteAnnotation = useCallback(
-    (annotation: IClusterNodeAnnotation) => {
-      setDeleteDialog({
-        open: true,
-        type: DialogType.ANNOTATION,
-        item: annotation,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddAnnotation = useCallback(
-    (key: string, value: string) => {
-      addAnnotationMutate({ key, value })
-    },
-    [addAnnotationMutate]
-  )
-
-  const handleDeleteTaint = useCallback(
-    (taint: IClusterNodeTaint) => {
-      setDeleteDialog({
-        open: true,
-        type: DialogType.TAINT,
-        item: taint,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddTaint = useCallback(
-    (key: string, value: string, effect?: string) => {
-      if (effect) {
-        addTaintMutate({ key, value, effect })
+      const data = res.data
+      switch (config.type) {
+        case DialogType.LABEL:
+          return data?.labels || []
+        case DialogType.ANNOTATION:
+          return data?.annotations || []
+        case DialogType.TAINT:
+          return data?.taints || []
+        default:
+          return []
       }
     },
-    [addTaintMutate]
+    enabled: !!nodeName,
+  })
+
+  // 删除mutation
+  const { mutate: deleteMutate } = useMutation({
+    mutationFn: (item: NodeMarkItem) => {
+      switch (config.type) {
+        case DialogType.LABEL:
+          return apiDeleteNodeLabel(nodeName, item as IClusterNodeLabel)
+        case DialogType.ANNOTATION:
+          return apiDeleteNodeAnnotation(nodeName, item as IClusterNodeAnnotation)
+        case DialogType.TAINT:
+          return apiDeleteNodeTaint(nodeName, item as IClusterNodeTaint)
+        default:
+          throw new Error('Unknown type')
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
+      toast.success(`${config.columns.key.replace('名', '')}删除成功`)
+    },
+  })
+
+  // 添加mutation
+  const { mutate: addMutate } = useMutation({
+    mutationFn: (item: NodeMarkItem) => {
+      switch (config.type) {
+        case DialogType.LABEL:
+          return apiAddNodeLabel(nodeName, item as IClusterNodeLabel)
+        case DialogType.ANNOTATION:
+          return apiAddNodeAnnotation(nodeName, item as IClusterNodeAnnotation)
+        case DialogType.TAINT:
+          return apiAddNodeTaint(nodeName, item as IClusterNodeTaint)
+        default:
+          throw new Error('Unknown type')
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
+      toast.success(`${config.columns.key.replace('名', '')}添加成功`)
+    },
+  })
+
+  const handleDelete = useCallback(
+    (item: NodeMarkItem) => {
+      setDeleteDialog({
+        open: true,
+        item,
+      })
+    },
+    [setDeleteDialog]
   )
 
-  // 处理删除确认
+  const handleAdd = useCallback(
+    (key: string, value: string, effect?: string) => {
+      const item = { key, value } as NodeMarkItem
+      if (config.hasEffect && effect) {
+        ;(item as IClusterNodeTaint).effect = effect
+      }
+      addMutate(item)
+    },
+    [addMutate, config.hasEffect]
+  )
+
   const handleDeleteConfirm = useCallback(() => {
-    if (!deleteDialog.item) return
-
-    switch (deleteDialog.type) {
-      case 'label':
-        deleteLabelMutate(deleteDialog.item as IClusterNodeLabel)
-        break
-      case 'annotation':
-        deleteAnnotationMutate(deleteDialog.item as IClusterNodeAnnotation)
-        break
-      case 'taint':
-        deleteTaintMutate(deleteDialog.item as IClusterNodeTaint)
-        break
+    if (deleteDialog.item) {
+      deleteMutate(deleteDialog.item)
     }
-  }, [deleteDialog, deleteLabelMutate, deleteAnnotationMutate, deleteTaintMutate])
+  }, [deleteDialog.item, deleteMutate])
 
-  // Labels 列定义
-  const labelColumns: ColumnDef<IClusterNodeLabel>[] = useMemo(
-    () => [
+  // 列定义
+  const columns: ColumnDef<NodeMarkItem>[] = useMemo(() => {
+    const cols: ColumnDef<NodeMarkItem>[] = [
       {
         accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Label名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Label值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteLabel(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={config.columns.key} />
         ),
-        enableSorting: false,
-      },
-    ],
-    [handleDeleteLabel]
-  )
-
-  // Annotations 列定义
-  const annotationColumns: ColumnDef<IClusterNodeAnnotation>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Annotation名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Annotation值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteAnnotation(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
+        cell: ({ getValue }) => (
+          <TruncatedCell value={getValue<string>()} maxLength={config.maxLengths.key} />
         ),
-        enableSorting: false,
-      },
-    ],
-    [handleDeleteAnnotation]
-  )
-
-  // Taints 列定义
-  const taintColumns: ColumnDef<IClusterNodeTaint>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
       },
       {
         accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={40} />,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={config.columns.value} />
+        ),
+        cell: ({ getValue }) => (
+          <TruncatedCell value={getValue<string>()} maxLength={config.maxLengths.value} />
+        ),
       },
-      {
+    ]
+
+    if (config.hasEffect) {
+      cols.push({
         accessorKey: 'effect',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint效果" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={20} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteTaint(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={config.columns.effect!} />
         ),
-        enableSorting: false,
+        cell: ({ getValue }) => (
+          <TruncatedCell value={getValue<string>()} maxLength={config.maxLengths.effect!} />
+        ),
+      })
+    }
+
+    cols.push({
+      id: 'actions',
+      header: '操作',
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleDelete(row.original)}
+          className="h-8 w-8 p-0"
+        >
+          <Trash2Icon className="text-destructive h-4 w-4" />
+        </Button>
+      ),
+      enableSorting: false,
+    })
+
+    return cols
+  }, [config, handleDelete])
+
+  // Toolbar配置
+  const toolbarConfig: DataTableToolbarConfig = useMemo(() => {
+    const filterOptions: {
+      key: string
+      title: string
+      option: { value: string; label: string }[]
+      defaultValues?: string[]
+    }[] = []
+
+    if (config.hasEffect) {
+      filterOptions.push({
+        key: 'effect',
+        title: 'Effect',
+        option: [
+          { value: TaintEffect.NoSchedule, label: TaintEffect.NoSchedule },
+          { value: TaintEffect.PreferNoSchedule, label: TaintEffect.PreferNoSchedule },
+          { value: TaintEffect.NoExecute, label: TaintEffect.NoExecute },
+        ],
+        defaultValues: [],
+      })
+    }
+
+    return {
+      filterInput: {
+        placeholder: config.searchPlaceholder,
+        key: 'key',
       },
-    ],
-    [handleDeleteTaint]
-  )
+      filterOptions,
+      getHeader: (key: string) => {
+        switch (key) {
+          case 'key':
+            return config.columns.key
+          case 'value':
+            return config.columns.value
+          case 'effect':
+            return config.columns.effect || key
+          default:
+            return key
+        }
+      },
+    }
+  }, [config])
 
-  return (
-    <div className="space-y-6">
-      {/* Labels 表格 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-medium">Labels</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="size-4" />
-                添加
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <AddNodeMarkDialog type={DialogType.LABEL} onAdd={handleAddLabel} />
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <DataTable storageKey="node-labels" query={labelsQuery} columns={labelColumns} />
-        </CardContent>
-      </Card>
+  const content = (
+    <>
+      <DataTable
+        storageKey={`node-${config.type}s`}
+        query={query}
+        columns={columns}
+        toolbarConfig={toolbarConfig}
+      />
 
-      {/* Annotations 表格 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-medium">Annotations</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="size-4" />
-                添加
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <AddNodeMarkDialog type={DialogType.ANNOTATION} onAdd={handleAddAnnotation} />
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            storageKey="node-annotations"
-            query={annotationsQuery}
-            columns={annotationColumns}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Taints 表格 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-medium">Taints</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="size-4" />
-                添加
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <AddNodeMarkDialog type={DialogType.TAINT} onAdd={handleAddTaint} />
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <DataTable storageKey="node-taints" query={taintsQuery} columns={taintColumns} />
-        </CardContent>
-      </Card>
-
-      {/* 删除确认对话框 */}
       <DeleteConfirmDialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
         onConfirm={handleDeleteConfirm}
-        title={`删除${deleteDialog.type === DialogType.LABEL ? 'Label' : deleteDialog.type === DialogType.ANNOTATION ? 'Annotation' : 'Taint'}`}
+        title={`删除${config.columns.key.replace('名', '')}`}
         itemInfo={{
           key: deleteDialog.item?.key || '',
           value: deleteDialog.item?.value || '',
-          effect:
-            'effect' in (deleteDialog.item || {})
-              ? (deleteDialog.item as IClusterNodeTaint)?.effect
-              : undefined,
+          effect: config.hasEffect ? (deleteDialog.item as IClusterNodeTaint)?.effect : undefined,
         }}
-        type={DialogType.TAINT}
+        type={config.type}
       />
+    </>
+  )
+
+  if (standalone) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">{config.title}</h3>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" className="flex items-center gap-2">
+                <Plus className="size-4" />
+                {config.addButtonText}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <AddNodeMarkDialog type={config.type} onAdd={handleAdd} />
+            </DialogContent>
+          </Dialog>
+        </div>
+        {content}
+      </div>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-medium">{config.title}</CardTitle>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size="sm" className="flex items-center gap-2">
+              <Plus className="size-4" />
+              添加
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <AddNodeMarkDialog type={config.type} onAdd={handleAdd} />
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
+    </Card>
+  )
+}
+
+export function NodeMarkList({ nodeName }: NodeMarkListProps) {
+  return (
+    <div className="space-y-6">
+      <GenericNodeMark nodeName={nodeName} config={MARK_TYPE_CONFIGS[DialogType.LABEL]} />
+      <GenericNodeMark nodeName={nodeName} config={MARK_TYPE_CONFIGS[DialogType.ANNOTATION]} />
+      <GenericNodeMark nodeName={nodeName} config={MARK_TYPE_CONFIGS[DialogType.TAINT]} />
     </div>
   )
 }
 
 // 单独的Labels组件
 export function NodeLabels({ nodeName }: NodeMarkListProps) {
-  const queryClient = useQueryClient()
-
-  // 删除确认对话框状态
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean
-    item: IClusterNodeLabel | null
-  }>({
-    open: false,
-    item: null,
-  })
-
-  const labelsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'labels'],
-    queryFn: async () => {
-      const res = await apiGetNodeMark(nodeName)
-      return res.data?.labels || []
-    },
-    enabled: !!nodeName,
-  })
-
-  const { mutate: deleteLabelMutate } = useMutation({
-    mutationFn: (label: IClusterNodeLabel) => apiDeleteNodeLabel(nodeName, label),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Label删除成功')
-    },
-  })
-
-  const { mutate: addLabelMutate } = useMutation({
-    mutationFn: (label: IClusterNodeLabel) => apiAddNodeLabel(nodeName, label),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Label添加成功')
-    },
-  })
-
-  const handleDeleteLabel = useCallback(
-    (label: IClusterNodeLabel) => {
-      setDeleteDialog({
-        open: true,
-        item: label,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddLabel = useCallback(
-    (key: string, value: string) => {
-      addLabelMutate({ key, value })
-    },
-    [addLabelMutate]
-  )
-
-  // 处理删除确认
-  const handleDeleteConfirm = useCallback(() => {
-    if (deleteDialog.item) {
-      deleteLabelMutate(deleteDialog.item)
-    }
-  }, [deleteDialog.item, deleteLabelMutate])
-
-  const labelColumns: ColumnDef<IClusterNodeLabel>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Label名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={40} />,
-      },
-      {
-        accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Label值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteLabel(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
-        ),
-        enableSorting: false,
-      },
-    ],
-    [handleDeleteLabel]
-  )
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Labels</h3>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" className="flex items-center gap-2">
-              <Plus className="size-4" />
-              添加 Label 标签
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <AddNodeMarkDialog type={DialogType.LABEL} onAdd={handleAddLabel} />
-          </DialogContent>
-        </Dialog>
-      </div>
-      <DataTable storageKey="node-labels" query={labelsQuery} columns={labelColumns} />
-
-      {/* 删除确认对话框 */}
-      <DeleteConfirmDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
-        onConfirm={handleDeleteConfirm}
-        title="删除Label"
-        itemInfo={{
-          key: deleteDialog.item?.key || '',
-          value: deleteDialog.item?.value || '',
-        }}
-        type={DialogType.LABEL}
-      />
-    </div>
+    <GenericNodeMark nodeName={nodeName} config={MARK_TYPE_CONFIGS[DialogType.LABEL]} standalone />
   )
 }
 
 // 单独的Annotations组件
 export function NodeAnnotations({ nodeName }: NodeMarkListProps) {
-  const queryClient = useQueryClient()
-
-  // 删除确认对话框状态
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean
-    item: IClusterNodeAnnotation | null
-  }>({
-    open: false,
-    item: null,
-  })
-
-  const annotationsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'annotations'],
-    queryFn: async () => {
-      const res = await apiGetNodeMark(nodeName)
-      return res.data?.annotations || []
-    },
-    enabled: !!nodeName,
-  })
-
-  const { mutate: deleteAnnotationMutate } = useMutation({
-    mutationFn: (annotation: IClusterNodeAnnotation) =>
-      apiDeleteNodeAnnotation(nodeName, annotation),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Annotation删除成功')
-    },
-  })
-
-  const { mutate: addAnnotationMutate } = useMutation({
-    mutationFn: (annotation: IClusterNodeAnnotation) => apiAddNodeAnnotation(nodeName, annotation),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Annotation添加成功')
-    },
-  })
-
-  const handleDeleteAnnotation = useCallback(
-    (annotation: IClusterNodeAnnotation) => {
-      setDeleteDialog({
-        open: true,
-        item: annotation,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddAnnotation = useCallback(
-    (key: string, value: string) => {
-      addAnnotationMutate({ key, value })
-    },
-    [addAnnotationMutate]
-  )
-
-  // 处理删除确认
-  const handleDeleteConfirm = useCallback(() => {
-    if (deleteDialog.item) {
-      deleteAnnotationMutate(deleteDialog.item)
-    }
-  }, [deleteDialog.item, deleteAnnotationMutate])
-
-  const annotationColumns: ColumnDef<IClusterNodeAnnotation>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Annotation名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={30} />,
-      },
-      {
-        accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Annotation值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteAnnotation(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
-        ),
-        enableSorting: false,
-      },
-    ],
-    [handleDeleteAnnotation]
-  )
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Annotations</h3>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" className="flex items-center gap-2">
-              <Plus className="size-4" />
-              添加 Annotation 标注
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <AddNodeMarkDialog type={DialogType.ANNOTATION} onAdd={handleAddAnnotation} />
-          </DialogContent>
-        </Dialog>
-      </div>
-      <DataTable
-        storageKey="node-annotations"
-        query={annotationsQuery}
-        columns={annotationColumns}
-      />
-
-      {/* 删除确认对话框 */}
-      <DeleteConfirmDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
-        onConfirm={handleDeleteConfirm}
-        title="删除Annotation"
-        itemInfo={{
-          key: deleteDialog.item?.key || '',
-          value: deleteDialog.item?.value || '',
-        }}
-        type={DialogType.ANNOTATION}
-      />
-    </div>
+    <GenericNodeMark
+      nodeName={nodeName}
+      config={MARK_TYPE_CONFIGS[DialogType.ANNOTATION]}
+      standalone
+    />
   )
 }
 
 // 单独的Taints组件
 export function NodeTaints({ nodeName }: NodeMarkListProps) {
-  const queryClient = useQueryClient()
-
-  // 删除确认对话框状态
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean
-    item: IClusterNodeTaint | null
-  }>({
-    open: false,
-    item: null,
-  })
-
-  const taintsQuery = useQuery({
-    queryKey: ['nodes', nodeName, 'mark', 'taints'],
-    queryFn: async () => {
-      const res = await apiGetNodeMark(nodeName)
-      return res.data?.taints || []
-    },
-    enabled: !!nodeName,
-  })
-
-  const { mutate: deleteTaintMutate } = useMutation({
-    mutationFn: (taint: IClusterNodeTaint) => apiDeleteNodeTaint(nodeName, taint),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Taint删除成功')
-    },
-  })
-
-  const { mutate: addTaintMutate } = useMutation({
-    mutationFn: (taint: IClusterNodeTaint) => apiAddNodeTaint(nodeName, taint),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes', nodeName, 'mark'] })
-      toast.success('Taint添加成功')
-    },
-  })
-
-  const handleDeleteTaint = useCallback(
-    (taint: IClusterNodeTaint) => {
-      setDeleteDialog({
-        open: true,
-        item: taint,
-      })
-    },
-    [setDeleteDialog]
-  )
-
-  const handleAddTaint = useCallback(
-    (key: string, value: string, effect?: string) => {
-      if (effect) {
-        addTaintMutate({ key, value, effect })
-      }
-    },
-    [addTaintMutate]
-  )
-
-  // 处理删除确认
-  const handleDeleteConfirm = useCallback(() => {
-    if (deleteDialog.item) {
-      deleteTaintMutate(deleteDialog.item)
-    }
-  }, [deleteDialog.item, deleteTaintMutate])
-
-  const taintColumns: ColumnDef<IClusterNodeTaint>[] = useMemo(
-    () => [
-      {
-        accessorKey: 'key',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint名" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={30} />,
-      },
-      {
-        accessorKey: 'value',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint值" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={50} />,
-      },
-      {
-        accessorKey: 'effect',
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Taint效果" />,
-        cell: ({ getValue }) => <TruncatedCell value={getValue<string>()} maxLength={20} />,
-      },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDeleteTaint(row.original)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2Icon className="text-destructive h-4 w-4" />
-          </Button>
-        ),
-        enableSorting: false,
-      },
-    ],
-    [handleDeleteTaint]
-  )
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Taints</h3>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="sm" className="flex items-center gap-2">
-              <Plus className="size-4" />
-              添加 Taint 污点
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <AddNodeMarkDialog type={DialogType.TAINT} onAdd={handleAddTaint} />
-          </DialogContent>
-        </Dialog>
-      </div>
-      <DataTable storageKey="node-taints" query={taintsQuery} columns={taintColumns} />
-
-      {/* 删除确认对话框 */}
-      <DeleteConfirmDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
-        onConfirm={handleDeleteConfirm}
-        title="删除Taint"
-        itemInfo={{
-          key: deleteDialog.item?.key || '',
-          value: deleteDialog.item?.value || '',
-          effect: deleteDialog.item?.effect,
-        }}
-        type={DialogType.TAINT}
-      />
-    </div>
+    <GenericNodeMark nodeName={nodeName} config={MARK_TYPE_CONFIGS[DialogType.TAINT]} standalone />
   )
 }
 
