@@ -46,8 +46,10 @@ import { getNodeColumns, nodesToolbarConfig } from '@/components/node/node-list'
 import { DataTable } from '@/components/query-table'
 
 import {
+  CraterArmTaint,
   IClusterNodeTaint,
   INodeBriefInfo,
+  JoinTaint,
   NodeStatus,
   apiAddNodeTaint,
   apiDeleteNodeTaint,
@@ -83,7 +85,9 @@ function RestoreArmTaintDialog({
         <div className="space-y-4">
           <p className="text-muted-foreground text-sm">
             检测到以下 ARM 架构节点缺少污点，是否为这些节点添加{' '}
-            <code className="bg-muted mx-1 rounded px-1.5 py-0.5 text-xs">arm=true:NoSchedule</code>{' '}
+            <code className="bg-muted mx-1 rounded px-1.5 py-0.5 text-xs">
+              {JoinTaint(CraterArmTaint)}
+            </code>{' '}
             污点？
           </p>
 
@@ -202,13 +206,7 @@ function NodesForAdmin() {
   // 批量恢复ARM污点的mutation
   const { mutate: batchRestoreArmTaint } = useMutation({
     mutationFn: async (nodeNames: string[]) => {
-      const taintContent: IClusterNodeTaint = {
-        key: 'arm',
-        value: 'true',
-        effect: 'NoSchedule',
-      }
-
-      const promises = nodeNames.map((nodeName) => apiAddNodeTaint(nodeName, taintContent))
+      const promises = nodeNames.map((nodeName) => apiAddNodeTaint(nodeName, CraterArmTaint))
       return Promise.all(promises)
     },
     onSuccess: async (_, nodeNames) => {
@@ -233,7 +231,7 @@ function NodesForAdmin() {
     const armNodesWithoutTaint = nodeQuery.data.filter((node: INodeBriefInfo) => {
       // 检查节点名称中是否包含arm相关信息 (简化判断逻辑)
       const isArmArchitecture = node.arch.match('arm64')
-      const hasArmTaint = node.taints?.some((taint) => taint.startsWith('arm=true:NoSchedule'))
+      const hasArmTaint = node.taints?.some((taint) => taint.startsWith(JoinTaint(CraterArmTaint)))
       return isArmArchitecture && !hasArmTaint
     })
 
