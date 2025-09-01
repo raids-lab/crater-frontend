@@ -43,7 +43,7 @@ import { DataTableColumnHeader } from '@/components/query-table/column-header'
 
 import { type ApprovalOrder, listMyApprovalOrder } from '@/services/api/approvalorder'
 
-export const Route = createFileRoute('/portal/approvalorder/')({
+export const Route = createFileRoute('/portal/settings/orders/')({
   component: RouteComponent,
 })
 
@@ -119,7 +119,9 @@ function RouteComponent() {
     },
     {
       id: 'actions',
-      header: t('ApprovalOrderTable.column.actions'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('ApprovalOrderTable.column.actions')} />
+      ),
       cell: () => {
         return (
           <DropdownMenu>

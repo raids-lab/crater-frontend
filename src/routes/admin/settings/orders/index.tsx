@@ -66,9 +66,9 @@ import { type IJobInfo, apiAdminGetJobList } from '@/services/api/vcjob'
 
 import { atomUserInfo } from '@/utils/store'
 
-import { DurationDialog } from '../jobs/-components/DurationDialog'
+import { DurationDialog } from '../../jobs/-components/DurationDialog'
 
-export const Route = createFileRoute('/admin/approvalorder/')({
+export const Route = createFileRoute('/admin/settings/orders/')({
   component: RouteComponent,
 })
 export const getHeader = (key: string): string => {
@@ -294,7 +294,9 @@ function RouteComponent() {
     },
     {
       id: 'actions',
-      header: t('ApprovalOrderTable.column.actions'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('ApprovalOrderTable.column.actions')} />
+      ),
       cell: ({ row }) => {
         const order = row.original
         const isPending = order.status === 'Pending'

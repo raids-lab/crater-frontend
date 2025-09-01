@@ -89,11 +89,6 @@ const useAdminSidebarGroups = (): NavGroupProps[] => {
           url: 'cronjobs',
           icon: AlarmClockIcon,
         },
-        {
-          title: t('navigation.approvalOrder'),
-          url: 'approvalorder',
-          icon: ClipboardCheckIcon,
-        },
       ],
     },
     {
@@ -147,6 +142,11 @@ const useAdminSidebarGroups = (): NavGroupProps[] => {
           title: t('navigation.platformSettings'),
           icon: SettingsIcon,
           url: 'settings',
+        },
+        {
+          title: t('navigation.approvalOrder'),
+          url: 'settings/orders',
+          icon: ClipboardCheckIcon,
         },
       ],
     },

@@ -24,7 +24,7 @@ interface SearchParams {
   type?: string
 }
 
-export const Route = createFileRoute('/admin/approvalorder/$id')({
+export const Route = createFileRoute('/admin/settings/orders/$id')({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
     type: search.type as string,

@@ -125,12 +125,6 @@ export function DurationDialog({
     [isExtendDialogOpen]
   )
 
-  // 打开时展示 props 默认值
-  useEffect(() => {
-    if (!open) return
-    toast(`调试: Dialog props 默认值 -> days=${defaultDays ?? 0}, hours=${defaultHours ?? 0}`)
-  }, [open, defaultDays, defaultHours])
-
   // 打开时用默认值重置，并展示表单值
   useEffect(() => {
     if (!open) return
@@ -140,8 +134,6 @@ export function DurationDialog({
       hours: defaultHours ?? 0,
     }
     form.reset(next)
-    const cur = form.getValues()
-    toast(`调试: RHF reset -> days=${next.days}/${cur.days}, hours=${next.hours}/${cur.hours}`)
   }, [open, defaultDays, defaultHours, form])
 
   // 打开对话框时用默认值重置，并计算一次预览

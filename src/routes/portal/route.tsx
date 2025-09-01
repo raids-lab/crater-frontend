@@ -17,7 +17,6 @@ import { Outlet, createFileRoute, redirect, useLocation } from '@tanstack/react-
 import {
   BarChartBigIcon,
   BoxIcon,
-  ClipboardCheckIcon,
   DatabaseIcon,
   FlaskConicalIcon,
   FolderIcon,
@@ -116,11 +115,6 @@ const useUserSidebarGroups = (): NavGroupProps[] => {
           url: 'templates',
           icon: ShoppingBagIcon,
         },
-        {
-          title: t('navigation.approvalOrder'),
-          url: 'approvalorder',
-          icon: ClipboardCheckIcon,
-        },
       ],
     },
     {
@@ -175,6 +169,10 @@ const useUserSidebarGroups = (): NavGroupProps[] => {
             {
               title: t('navigation.userSettings'),
               url: 'settings/user',
+            },
+            {
+              title: t('navigation.approvalOrder'),
+              url: 'settings/orders',
             },
           ],
         },
