@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -30,80 +30,6 @@ import {
 } from '@/services/api/account'
 import { IResponse } from '@/services/types'
 
-const CapacityBadge = ({
-  keyName, // 原始 key（可能包含命名空间）
-  displayKey, // 用于展示的 key（剥离命名空间）
-  value,
-  editable,
-  onUpdate,
-}: {
-  keyName: string
-  displayKey: string
-  value: string
-  editable: boolean
-  onUpdate: (key: string, value: string) => void
-}) => {
-  const [editValue, setEditValue] = useState(value)
-  const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    setEditValue(value)
-  }, [value])
-
-  const display =
-    displayKey === 'cpu'
-      ? `${value}c`
-      : displayKey === 'memory'
-        ? `${value}`
-        : `${displayKey}: ${value}`
-
-  if (!editable) {
-    return (
-      <Badge variant="secondary" className="font-mono">
-        {display}
-      </Badge>
-    )
-  }
-
-  const handleSave = () => {
-    onUpdate(keyName, editValue) // 使用原始 key 更新
-    setIsOpen(false)
-  }
-
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Badge
-          className="hover:bg-primary hover:text-primary-foreground cursor-pointer font-mono select-none"
-          variant="secondary"
-          title="Click to edit resource"
-        >
-          {display}
-        </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 space-y-3 p-4">
-        <h4 className="font-medium">Configure {displayKey.toUpperCase()}</h4>
-        <div className="flex items-center gap-2">
-          <Input
-            type="text"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            className="flex-1"
-          />
-        </div>
-        <Button
-          size="sm"
-          className="w-full"
-          disabled={!editValue || editValue === value}
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 export default function CapacityBadges({
   aid,
   uid,
@@ -114,14 +40,7 @@ export default function CapacityBadges({
 }: IUserInAccountUpdateReq & { editable: boolean }) {
   const queryClient = useQueryClient()
 
-  // 本地能力值，立即刷新 UI（乐观更新）
-  const [capability, setCapability] = useState<Record<string, string>>(quota?.capability ?? {})
-
-  useEffect(() => {
-    setCapability(quota?.capability ?? {})
-  }, [quota])
-
-  const { mutate: updateCapacity } = useMutation<
+  const { mutate: updateCapacity, isPending } = useMutation<
     IResponse<IUserInAccountUpdateResp>,
     Error,
     IUserInAccountUpdateReq
@@ -129,30 +48,39 @@ export default function CapacityBadges({
     mutationFn: ({ aid, uid, role, accessmode, quota }) =>
       apiUpdateUserOutOfProjectList({ aid, uid, role, accessmode, quota }),
     onSuccess: () => {
-      // 让父列表与后端最终状态对齐
       queryClient.invalidateQueries({ queryKey: ['account', aid, 'users'] })
-      toast.success(`User updated`)
+      toast.success('User updated')
     },
     onError: () => {
-      toast.error(`Failed to update user`)
-      // 出错时由后续 refetch 覆盖本地乐观值，简单处理
+      toast.error('Update user failed')
       queryClient.invalidateQueries({ queryKey: ['account', aid, 'users'] })
     },
   })
 
+  const [capability, setCapability] = useState<Record<string, string>>(quota?.capability ?? {})
+  const capabilityRef = useRef<Record<string, string>>(capability)
+
+  useEffect(() => {
+    setCapability(quota?.capability ?? {})
+  }, [quota])
+
+  useEffect(() => {
+    capabilityRef.current = capability
+  }, [capability])
+
   // 更新时使用原始 key（包含命名空间）
   const handleUpdateCapacity = useCallback(
     (key: string, value: string) => {
-      setCapability((prev) => {
-        const next = { ...prev, [key]: value }
-        const quotaUpdate: IQuota = {
-          guaranteed: quota?.guaranteed,
-          deserved: quota?.deserved,
-          capability: next,
-        }
-        updateCapacity({ aid, uid, role, accessmode, quota: quotaUpdate })
-        return next
-      })
+      // 在回调外计算 next，避免在 setState 回调里做副作用
+      const next = { ...capabilityRef.current, [key]: value }
+      setCapability(next)
+
+      const quotaUpdate: IQuota = {
+        guaranteed: quota?.guaranteed,
+        deserved: quota?.deserved,
+        capability: next,
+      }
+      updateCapacity({ aid, uid, role, accessmode, quota: quotaUpdate })
     },
     [aid, uid, role, accessmode, quota?.guaranteed, quota?.deserved, updateCapacity]
   )
@@ -169,6 +97,80 @@ export default function CapacityBadges({
       }),
     [capability]
   )
+
+  const CapacityBadge = ({
+    keyName,
+    displayKey,
+    value,
+    editable,
+    onUpdate,
+  }: {
+    keyName: string
+    displayKey: string
+    value: string
+    editable: boolean
+    onUpdate: (key: string, value: string) => void
+  }) => {
+    const [editValue, setEditValue] = useState(value)
+    const [isOpen, setIsOpen] = useState(false)
+
+    useEffect(() => {
+      setEditValue(value)
+    }, [value])
+
+    const display =
+      displayKey === 'cpu'
+        ? `${value}c`
+        : displayKey === 'memory'
+          ? `${value}`
+          : `${displayKey}: ${value}`
+
+    if (!editable) {
+      return (
+        <Badge variant="secondary" className="font-mono">
+          {display}
+        </Badge>
+      )
+    }
+
+    const handleSave = () => {
+      onUpdate(keyName, editValue) // 使用原始 key 更新
+      setIsOpen(false)
+    }
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Badge
+            className="hover:bg-primary hover:text-primary-foreground cursor-pointer font-mono select-none"
+            variant="secondary"
+            title="Click to edit resource"
+          >
+            {display}
+          </Badge>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 space-y-3 p-4">
+          <h4 className="font-medium">Configure {displayKey.toUpperCase()}</h4>
+          <div className="flex items-center gap-2">
+            <Input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          <Button
+            size="sm"
+            className="w-full"
+            disabled={!editValue || editValue === value || isPending}
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+        </PopoverContent>
+      </Popover>
+    )
+  }
 
   return (
     <div className="flex flex-col flex-wrap gap-1 lg:flex-row">
