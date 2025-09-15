@@ -128,7 +128,7 @@ export const apiUserOutOfProjectList = (pid: number) =>
   apiV1Get<IResponse<IUserInAccount[]>>(`admin/accounts/userOutOf/${pid}`)
 
 export const apiUpdateUserOutOfProjectList = (user: IUserInAccountUpdateReq) =>
-  apiV1Put<IResponse<IUserInAccountUpdateResp>>(`admin/accounts/userIn`, user)
+  apiV1Put<IResponse<IUserInAccountUpdateResp>>(`admin/accounts/userIn/${user.aid}`, user)
 
 export const apiAccountQuotaGet = (pid: number) => {
   return apiV1Get<IResponse<QuotaResp>>(`admin/accounts/${pid}/quota`)
