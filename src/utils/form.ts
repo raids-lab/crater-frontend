@@ -260,7 +260,7 @@ export const importFromJsonFile = async <T>(
       `当前配置类型为 ${type}，导入配置类型为 ${jobInfo.type}，无法导入，请手动创建新配置`
     )
   }
-  return jobInfo.data
+  return processImageCompatibility(jobInfo.data)
 }
 
 export const importFromJsonString = <T>(metadata: MetadataFormType, text: string): T => {
@@ -274,7 +274,77 @@ export const importFromJsonString = <T>(metadata: MetadataFormType, text: string
       `当前配置类型为 ${metadata.type}，导入配置类型为 ${jobInfo.type}，无法导入，请手动创建新配置`
     )
   }
-  return jobInfo.data
+  return processImageCompatibility(jobInfo.data)
+}
+
+// 处理镜像字段兼容性的函数
+const processImageCompatibility = <T>(data: T): T => {
+  if (!data || typeof data !== 'object') {
+    return data
+  }
+
+  const result = { ...data } as Record<string, unknown>
+
+  // 处理顶层的 image 字段
+  if ('image' in result) {
+    result.image = convertImageFormat(result.image)
+  }
+
+  // 处理 task.image 字段（用于自定义作业类型）
+  if ('task' in result && typeof result.task === 'object' && result.task !== null) {
+    const task = { ...result.task } as Record<string, unknown>
+    if ('image' in task) {
+      task.image = convertImageFormat(task.image)
+    }
+    result.task = task
+  }
+
+  // 处理 ps.image 字段（用于分布式训练作业）
+  if ('ps' in result && typeof result.ps === 'object' && result.ps !== null) {
+    const ps = { ...result.ps } as Record<string, unknown>
+    if ('image' in ps) {
+      ps.image = convertImageFormat(ps.image)
+    }
+    result.ps = ps
+  }
+
+  // 处理 worker.image 字段（用于分布式训练作业）
+  if ('worker' in result && typeof result.worker === 'object' && result.worker !== null) {
+    const worker = { ...result.worker } as Record<string, unknown>
+    if ('image' in worker) {
+      worker.image = convertImageFormat(worker.image)
+    }
+    result.worker = worker
+  }
+
+  return result as T
+}
+
+// 转换单个镜像字段的格式
+const convertImageFormat = (imageValue: unknown) => {
+  // 如果 image 是字符串（旧格式），转换为新格式
+  if (typeof imageValue === 'string') {
+    return {
+      imageLink: imageValue,
+      archs: ['linux/amd64'],
+    }
+  }
+
+  // 如果 image 是对象但缺少 archs 字段，添加默认值
+  if (
+    typeof imageValue === 'object' &&
+    imageValue !== null &&
+    'imageLink' in imageValue &&
+    !('archs' in imageValue)
+  ) {
+    return {
+      ...imageValue,
+      archs: ['linux/amd64'],
+    }
+  }
+
+  // 否则返回原值
+  return imageValue
 }
 
 export const convertToResourceList = (resource: ResourceSchema): V1ResourceList => {
