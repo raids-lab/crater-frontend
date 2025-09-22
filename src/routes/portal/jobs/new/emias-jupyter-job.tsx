@@ -59,6 +59,7 @@ import {
   VolumeMountType,
   convertToResourceList,
   defaultResource,
+  ensureImageCompatibility,
   envsSchema,
   exportToJsonString,
   forwardsSchema,
@@ -104,23 +105,10 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 const dataProcessor = (data: FormSchema) => {
-  // 处理镜像字段兼容性（将旧的字符串格式转换为新的对象格式）
-  if (data.task.image && typeof data.task.image === 'string') {
-    data.task.image = {
-      imageLink: data.task.image,
-      archs: ['linux/amd64'],
-    }
-  } else if (
-    data.task.image &&
-    typeof data.task.image === 'object' &&
-    'imageLink' in data.task.image &&
-    !('archs' in data.task.image)
-  ) {
-    const imageObj = data.task.image as { imageLink: string }
-    data.task.image = {
-      imageLink: imageObj.imageLink,
-      archs: ['linux/amd64'],
-    }
+  // 处理镜像字段兼容性
+  data.task.image = ensureImageCompatibility(data.task.image) as {
+    imageLink: string
+    archs: string[]
   }
 
   // if rdma is enabled, set it to false
