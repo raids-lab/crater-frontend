@@ -169,6 +169,44 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 const dataProcessor = (data: FormSchema) => {
+  // 处理 ps.image 字段兼容性
+  if (data.ps.image && typeof data.ps.image === 'string') {
+    data.ps.image = {
+      imageLink: data.ps.image,
+      archs: ['linux/amd64'],
+    }
+  } else if (
+    data.ps.image &&
+    typeof data.ps.image === 'object' &&
+    'imageLink' in data.ps.image &&
+    !('archs' in data.ps.image)
+  ) {
+    const imageObj = data.ps.image as { imageLink: string }
+    data.ps.image = {
+      imageLink: imageObj.imageLink,
+      archs: ['linux/amd64'],
+    }
+  }
+
+  // 处理 worker.image 字段兼容性
+  if (data.worker.image && typeof data.worker.image === 'string') {
+    data.worker.image = {
+      imageLink: data.worker.image,
+      archs: ['linux/amd64'],
+    }
+  } else if (
+    data.worker.image &&
+    typeof data.worker.image === 'object' &&
+    'imageLink' in data.worker.image &&
+    !('archs' in data.worker.image)
+  ) {
+    const imageObj = data.worker.image as { imageLink: string }
+    data.worker.image = {
+      imageLink: imageObj.imageLink,
+      archs: ['linux/amd64'],
+    }
+  }
+
   // Convert forwards to a format suitable for the API
   if (data.forwards === undefined || data.forwards === null) {
     data.forwards = []

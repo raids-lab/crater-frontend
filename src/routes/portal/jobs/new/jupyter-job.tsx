@@ -103,6 +103,25 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 const dataProcessor = (data: FormSchema) => {
+  // 处理镜像字段兼容性（将旧的字符串格式转换为新的对象格式）
+  if (data.task.image && typeof data.task.image === 'string') {
+    data.task.image = {
+      imageLink: data.task.image,
+      archs: ['linux/amd64'],
+    }
+  } else if (
+    data.task.image &&
+    typeof data.task.image === 'object' &&
+    'imageLink' in data.task.image &&
+    !('archs' in data.task.image)
+  ) {
+    const imageObj = data.task.image as { imageLink: string }
+    data.task.image = {
+      imageLink: imageObj.imageLink,
+      archs: ['linux/amd64'],
+    }
+  }
+
   // 如果需要在不改变 MetadataFormJupyter 版本号的情况下，保持兼容性
   // 可以在这里进行数据转换
 

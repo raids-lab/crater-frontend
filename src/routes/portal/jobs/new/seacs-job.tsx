@@ -224,7 +224,18 @@ function RouteComponent() {
       if (jobInfo.data.task?.image && typeof jobInfo.data.task.image === 'string') {
         jobInfo.data.task.image = {
           imageLink: jobInfo.data.task.image,
-          archs: [],
+          archs: ['linux/amd64'],
+        }
+      } else if (
+        jobInfo.data.task?.image &&
+        typeof jobInfo.data.task.image === 'object' &&
+        'imageLink' in jobInfo.data.task.image &&
+        !('archs' in jobInfo.data.task.image)
+      ) {
+        const imageObj = jobInfo.data.task.image as { imageLink: string }
+        jobInfo.data.task.image = {
+          imageLink: imageObj.imageLink,
+          archs: ['linux/amd64'],
         }
       }
 
