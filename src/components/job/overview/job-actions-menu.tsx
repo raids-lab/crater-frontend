@@ -83,7 +83,7 @@ export const JobActionsMenu = ({ jobInfo, onDelete }: JobActionsMenuProps) => {
   )
 
   // 暂时隐藏申请锁定功能，工单审批功能不完善
-  const canExtend = true // jobStatus === JobStatus.Running
+  const canExtend = false // jobStatus === JobStatus.Running
 
   const handleExtensionSubmit = async () => {
     if (!canExtend) {
