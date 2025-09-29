@@ -24,7 +24,7 @@
     "@nivo/core": "^0.99.0",
     "@nivo/pie": "^0.99.0",
     "@nivo/theming": "^0.99.0",
-    "@polkadot/react-identicon": "^3.15.3",
+    "@polkadot/react-identicon": "^3.16.1",
     "@polkadot/util-crypto": "^13.5.4",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
