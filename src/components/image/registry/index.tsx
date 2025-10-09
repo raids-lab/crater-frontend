@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { ColumnDef } from '@tanstack/react-table'
 import { useAtomValue } from 'jotai'
 import { EllipsisVerticalIcon as DotsHorizontalIcon } from 'lucide-react'
@@ -123,6 +123,7 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
   const [openCudaBaseImageSheet, setOpenCudaBaseImageSheet] = useState(false)
   const [imagePackName, setImagePackName] = useState<string>('')
   const navigate = useNavigate()
+  const location = useLocation()
   const [openCheckDialog, setCheckOpenDialog] = useState(false)
   const user = useAtomValue(atomUserInfo)
   const [selectedLinkPairs, setSelectedLinkPairs] = useState<ImageLinkPair[]>([])
@@ -243,7 +244,15 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
                   <DropdownMenuLabel className="text-muted-foreground text-xs">
                     操作
                   </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => navigate({ to: `${kanikoInfo.imagepackName}` })}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      // Get current path prefix to ensure compatibility with user and admin environments
+                      const pathPrefix = location.pathname.startsWith('/admin')
+                        ? '/admin/env/registry'
+                        : '/portal/env/registry'
+                      navigate({ from: pathPrefix, to: `${kanikoInfo.imagepackName}` })
+                    }}
+                  >
                     <InfoIcon className="text-highlight-emerald" />
                     详情
                   </DropdownMenuItem>

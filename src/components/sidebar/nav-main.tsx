@@ -76,10 +76,15 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
+  const location = useLocation()
+
+  // Get current path prefix to ensure compatibility with user and admin environments
+  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={checkIsActive(href, item)} tooltip={item.title}>
-        <Link to={item.url} onClick={() => setOpenMobile(false)}>
+        <Link from={pathPrefix} to={item.url} onClick={() => setOpenMobile(false)}>
           {item.icon && <item.icon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -91,6 +96,11 @@ const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
 
 const SidebarMenuCollapsible = ({ item, href }: { item: NavCollapsible; href: string }) => {
   const { setOpenMobile } = useSidebar()
+  const location = useLocation()
+
+  // Get current path prefix to ensure compatibility with user and admin environments
+  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+
   return (
     <Collapsible
       asChild
@@ -111,7 +121,7 @@ const SidebarMenuCollapsible = ({ item, href }: { item: NavCollapsible; href: st
             {item.items.map((subItem) => (
               <SidebarMenuSubItem key={subItem.title}>
                 <SidebarMenuSubButton asChild isActive={checkIsActive(href, subItem)}>
-                  <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
+                  <Link from={pathPrefix} to={subItem.url} onClick={() => setOpenMobile(false)}>
                     {subItem.icon && <subItem.icon />}
                     <span>{subItem.title}</span>
                     {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
@@ -127,6 +137,11 @@ const SidebarMenuCollapsible = ({ item, href }: { item: NavCollapsible; href: st
 }
 
 const SidebarMenuCollapsedDropdown = ({ item, href }: { item: NavCollapsible; href: string }) => {
+  const location = useLocation()
+
+  // Get current path prefix to ensure compatibility with user and admin environments
+  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+
   return (
     <SidebarMenuItem>
       <DropdownMenu>
@@ -145,7 +160,11 @@ const SidebarMenuCollapsedDropdown = ({ item, href }: { item: NavCollapsible; hr
           <DropdownMenuSeparator />
           {item.items.map((sub) => (
             <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
-              <Link to={sub.url} className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}>
+              <Link
+                from={pathPrefix}
+                to={sub.url}
+                className={`${checkIsActive(href, sub) ? 'bg-secondary' : ''}`}
+              >
                 {sub.icon && <sub.icon />}
                 <span className="max-w-52 text-wrap">{sub.title}</span>
                 {sub.badge && <span className="ml-auto text-xs">{sub.badge}</span>}
