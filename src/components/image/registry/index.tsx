@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useLocation, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { ColumnDef } from '@tanstack/react-table'
 import { useAtomValue } from 'jotai'
 import { EllipsisVerticalIcon as DotsHorizontalIcon } from 'lucide-react'
@@ -77,6 +77,8 @@ import {
 } from '@/services/api/imagepack'
 import { IResponse } from '@/services/types'
 
+import useIsAdmin from '@/hooks/use-admin'
+
 import { formatBytes } from '@/utils/formatter'
 import { logger } from '@/utils/loglevel'
 import { atomUserInfo } from '@/utils/store'
@@ -123,7 +125,7 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
   const [openCudaBaseImageSheet, setOpenCudaBaseImageSheet] = useState(false)
   const [imagePackName, setImagePackName] = useState<string>('')
   const navigate = useNavigate()
-  const location = useLocation()
+  const isAdmin = useIsAdmin()
   const [openCheckDialog, setCheckOpenDialog] = useState(false)
   const user = useAtomValue(atomUserInfo)
   const [selectedLinkPairs, setSelectedLinkPairs] = useState<ImageLinkPair[]>([])
@@ -247,9 +249,7 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
                   <DropdownMenuItem
                     onClick={() => {
                       // Get current path prefix to ensure compatibility with user and admin environments
-                      const pathPrefix = location.pathname.startsWith('/admin')
-                        ? '/admin/env/registry'
-                        : '/portal/env/registry'
+                      const pathPrefix = isAdmin ? '/admin/env/registry' : '/portal/env/registry'
                       navigate({ from: pathPrefix, to: `${kanikoInfo.imagepackName}` })
                     }}
                   >

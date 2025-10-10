@@ -39,6 +39,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
+import useIsAdmin from '@/hooks/use-admin'
+
 import { NavCollapsible, type NavGroupProps, NavItem, NavLink } from './types.ts'
 
 export function NavGroup({ title, items }: NavGroupProps) {
@@ -76,10 +78,10 @@ const NavBadge = ({ children }: { children: ReactNode }) => (
 
 const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
   const { setOpenMobile } = useSidebar()
-  const location = useLocation()
+  const isAdmin = useIsAdmin()
 
   // Get current path prefix to ensure compatibility with user and admin environments
-  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+  const pathPrefix = isAdmin ? '/admin' : '/portal'
 
   return (
     <SidebarMenuItem>
@@ -96,10 +98,10 @@ const SidebarMenuLink = ({ item, href }: { item: NavLink; href: string }) => {
 
 const SidebarMenuCollapsible = ({ item, href }: { item: NavCollapsible; href: string }) => {
   const { setOpenMobile } = useSidebar()
-  const location = useLocation()
+  const isAdmin = useIsAdmin()
 
   // Get current path prefix to ensure compatibility with user and admin environments
-  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+  const pathPrefix = isAdmin ? '/admin' : '/portal'
 
   return (
     <Collapsible
@@ -137,10 +139,10 @@ const SidebarMenuCollapsible = ({ item, href }: { item: NavCollapsible; href: st
 }
 
 const SidebarMenuCollapsedDropdown = ({ item, href }: { item: NavCollapsible; href: string }) => {
-  const location = useLocation()
+  const isAdmin = useIsAdmin()
 
   // Get current path prefix to ensure compatibility with user and admin environments
-  const pathPrefix = location.pathname.startsWith('/admin') ? '/admin' : '/portal'
+  const pathPrefix = isAdmin ? '/admin' : '/portal'
 
   return (
     <SidebarMenuItem>
