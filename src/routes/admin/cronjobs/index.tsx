@@ -64,9 +64,7 @@ interface Job {
   name: string
   suspend?: boolean
   schedule?: string
-  configs?: {
-    [key: string]: string
-  }
+  configs?: Record<string, number | string | boolean>
 }
 
 // Moved Zod schema to component
@@ -355,7 +353,12 @@ export default function CronPolicy({ className }: { className?: string }) {
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.batchDays')}</label>
                         <FormControl>
-                          <Input type="number" className="mt-1 w-24 font-mono" {...field} />
+                          <Input
+                            type="number"
+                            className="mt-1 w-24 font-mono"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
                         {fieldState.error && (
                           <p className="text-xs text-red-500">{fieldState.error.message}</p>
@@ -370,7 +373,12 @@ export default function CronPolicy({ className }: { className?: string }) {
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.interactiveDays')}</label>
                         <FormControl>
-                          <Input type="number" className="mt-1 w-24 font-mono" {...field} />
+                          <Input
+                            type="number"
+                            className="mt-1 w-24 font-mono"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
                         {fieldState.error && (
                           <p className="text-xs text-red-500">{fieldState.error.message}</p>
@@ -423,7 +431,12 @@ export default function CronPolicy({ className }: { className?: string }) {
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.timeRange')}</label>
                         <FormControl>
-                          <Input type="number" className="mt-1 w-24 font-mono" {...field} />
+                          <Input
+                            type="number"
+                            className="mt-1 w-24 font-mono"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
                         {fieldState.error && (
                           <p className="text-xs text-red-500">{fieldState.error.message}</p>
@@ -443,6 +456,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                             step="0.1"
                             className="mt-1 w-24 font-mono"
                             {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
                           />
                         </FormControl>
                         {fieldState.error && (
@@ -458,7 +472,12 @@ export default function CronPolicy({ className }: { className?: string }) {
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.waitTime')}</label>
                         <FormControl>
-                          <Input type="number" className="mt-1 w-24 font-mono" {...field} />
+                          <Input
+                            type="number"
+                            className="mt-1 w-24 font-mono"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
                         {fieldState.error && (
                           <p className="text-xs text-red-500">{fieldState.error.message}</p>
@@ -511,7 +530,12 @@ export default function CronPolicy({ className }: { className?: string }) {
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.jupyterWait')}</label>
                         <FormControl>
-                          <Input type="number" className="mt-1 w-24 font-mono" {...field} />
+                          <Input
+                            type="number"
+                            className="mt-1 w-24 font-mono"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
                         </FormControl>
                         {fieldState.error && (
                           <p className="text-xs text-red-500">{fieldState.error.message}</p>
