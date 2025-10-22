@@ -62,16 +62,10 @@ export const Route = createFileRoute('/admin/cronjobs/')({
 
 interface Job {
   name: string
-  type?: string
   suspend?: boolean
   schedule?: string
   configs?: {
-    method?: string
-    url?: string
-    query?: {
-      [key: string]: string
-    }
-    payload?: Record<string, unknown>
+    [key: string]: string
   }
 }
 
@@ -85,12 +79,8 @@ const getCleanLongTimeSchema = (t: (key: string) => string) =>
       message: getCronErrorMessage(t),
     }),
     configs: z.object({
-      method: z.string().optional(),
-      url: z.string().optional(),
-      query: z.object({
-        batchDays: z.coerce.number().int().positive(),
-        interactiveDays: z.coerce.number().int().positive(),
-      }),
+      batchDays: z.coerce.number().int().positive(),
+      interactiveDays: z.coerce.number().int().positive(),
     }),
   })
 
@@ -101,13 +91,9 @@ const getCleanLowGpuSchema = (t: (key: string) => string) =>
       message: getCronErrorMessage(t),
     }),
     configs: z.object({
-      method: z.string().optional(),
-      url: z.string().optional(),
-      query: z.object({
-        timeRange: z.coerce.number().int().positive(),
-        util: z.coerce.number(),
-        waitTime: z.coerce.number().int().positive(),
-      }),
+      timeRange: z.coerce.number().int().positive(),
+      util: z.coerce.number(),
+      waitTime: z.coerce.number().int().positive(),
     }),
   })
 
@@ -118,11 +104,7 @@ const getCleanWaitingJupyterSchema = (t: (key: string) => string) =>
       message: getCronErrorMessage(t),
     }),
     configs: z.object({
-      method: z.string().optional(),
-      url: z.string().optional(),
-      query: z.object({
-        waitMinitues: z.coerce.number().int().positive(),
-      }),
+      waitMinitues: z.coerce.number().int().positive(),
     }),
   })
 
@@ -226,9 +208,9 @@ export default function CronPolicy({ className }: { className?: string }) {
       const lowGpuSuspend = form.getValues('cleanLowGpu.suspend')
       const waitingJupyterSuspend = form.getValues('cleanWaitingJupyter.suspend')
 
-      const longTimeData = form.getValues('cleanLongTime.configs.query')
-      const lowGpuData = form.getValues('cleanLowGpu.configs.query')
-      const waitingJupyterData = form.getValues('cleanWaitingJupyter.configs.query')
+      const longTimeData = form.getValues('cleanLongTime.configs')
+      const lowGpuData = form.getValues('cleanLowGpu.configs')
+      const waitingJupyterData = form.getValues('cleanWaitingJupyter.configs')
 
       const promises = []
 
@@ -368,7 +350,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanLongTime.configs.query.batchDays"
+                    name="cleanLongTime.configs.batchDays"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.batchDays')}</label>
@@ -383,7 +365,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanLongTime.configs.query.interactiveDays"
+                    name="cleanLongTime.configs.interactiveDays"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.interactiveDays')}</label>
@@ -436,7 +418,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanLowGpu.configs.query.timeRange"
+                    name="cleanLowGpu.configs.timeRange"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.timeRange')}</label>
@@ -451,7 +433,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanLowGpu.configs.query.util"
+                    name="cleanLowGpu.configs.util"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.util')}</label>
@@ -471,7 +453,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanLowGpu.configs.query.waitTime"
+                    name="cleanLowGpu.configs.waitTime"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.waitTime')}</label>
@@ -524,7 +506,7 @@ export default function CronPolicy({ className }: { className?: string }) {
                   />
                   <FormField
                     control={form.control}
-                    name="cleanWaitingJupyter.configs.query.waitMinitues"
+                    name="cleanWaitingJupyter.configs.waitMinitues"
                     render={({ field, fieldState }) => (
                       <FormItem className="flex flex-col">
                         <label className="text-sm">{t('cronPolicy.jupyterWait')}</label>
