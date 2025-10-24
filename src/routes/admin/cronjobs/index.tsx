@@ -55,6 +55,8 @@ import {
 
 import { cn } from '@/lib/utils'
 
+import CronJobRecordsTable from './cronjob-records-table'
+
 export const Route = createFileRoute('/admin/cronjobs/')({
   component: CronPolicy,
   loader: () => ({ crumb: t('navigation.cronPolicy') }),
@@ -302,296 +304,299 @@ export default function CronPolicy({ className }: { className?: string }) {
   }
 
   return (
-    <Card className={cn('flex flex-col', className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-1.5">
-          <AlarmClockIcon className="text-primary" />
-          {t('cronPolicy.title')}
-          <TipBadge />
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <Skeleton className="h-20 w-full" />
-        ) : (
-          <Form {...form}>
-            <div className="space-y-8 p-4">
-              <div className="rounded-md border p-4">
-                <h3 className="mb-4 font-semibold">{t('cronPolicy.longTimeTitle')}</h3>
-                <div className="flex flex-wrap gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cleanLongTime.suspend"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <span>{t('cronPolicy.suspend')}</span>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLongTime.schedule"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.schedule')}</label>
-                        <FormControl>
-                          <Input className="mt-1 font-mono" {...field} />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLongTime.configs.batchDays"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.batchDays')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLongTime.configs.interactiveDays"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.interactiveDays')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
+    <div className={cn('flex flex-col gap-6', className)}>
+      <Card className="flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-1.5">
+            <AlarmClockIcon className="text-primary" />
+            {t('cronPolicy.title')}
+            <TipBadge />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <Skeleton className="h-20 w-full" />
+          ) : (
+            <Form {...form}>
+              <div className="space-y-8 p-4">
+                <div className="rounded-md border p-4">
+                  <h3 className="mb-4 font-semibold">{t('cronPolicy.longTimeTitle')}</h3>
+                  <div className="flex flex-wrap gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cleanLongTime.suspend"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <span>{t('cronPolicy.suspend')}</span>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLongTime.schedule"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.schedule')}</label>
+                          <FormControl>
+                            <Input className="mt-1 font-mono" {...field} />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLongTime.configs.batchDays"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.batchDays')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLongTime.configs.interactiveDays"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.interactiveDays')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <Button variant="secondary" onClick={form.handleSubmit(onSubmitLongTime)}>
+                      {t('cronPolicy.longTimeUpdate')}
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <Button variant="secondary" onClick={form.handleSubmit(onSubmitLongTime)}>
-                    {t('cronPolicy.longTimeUpdate')}
-                  </Button>
-                </div>
-              </div>
 
-              <div className="rounded-md border p-4">
-                <h3 className="mb-4 font-semibold">{t('cronPolicy.lowGpuTitle')}</h3>
-                <div className="flex flex-wrap gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cleanLowGpu.suspend"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <span>{t('cronPolicy.suspend')}</span>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLowGpu.schedule"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.schedule')}</label>
-                        <FormControl>
-                          <Input className="mt-1 font-mono" {...field} />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLowGpu.configs.timeRange"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.timeRange')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLowGpu.configs.util"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.util')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanLowGpu.configs.waitTime"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.waitTime')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
+                <div className="rounded-md border p-4">
+                  <h3 className="mb-4 font-semibold">{t('cronPolicy.lowGpuTitle')}</h3>
+                  <div className="flex flex-wrap gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cleanLowGpu.suspend"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <span>{t('cronPolicy.suspend')}</span>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLowGpu.schedule"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.schedule')}</label>
+                          <FormControl>
+                            <Input className="mt-1 font-mono" {...field} />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLowGpu.configs.timeRange"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.timeRange')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLowGpu.configs.util"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.util')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanLowGpu.configs.waitTime"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.waitTime')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <Button variant="secondary" onClick={form.handleSubmit(onSubmitLowGpu)}>
+                      {t('cronPolicy.lowGpuUpdate')}
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-4">
-                  <Button variant="secondary" onClick={form.handleSubmit(onSubmitLowGpu)}>
-                    {t('cronPolicy.lowGpuUpdate')}
-                  </Button>
-                </div>
-              </div>
 
-              <div className="rounded-md border p-4">
-                <h3 className="mb-4 font-semibold">{t('cronPolicy.jupyterTitle')}</h3>
-                <div className="flex flex-wrap gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cleanWaitingJupyter.suspend"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <span>{t('cronPolicy.suspend')}</span>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanWaitingJupyter.schedule"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.schedule')}</label>
-                        <FormControl>
-                          <Input className="mt-1 font-mono" {...field} />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cleanWaitingJupyter.configs.waitMinitues"
-                    render={({ field, fieldState }) => (
-                      <FormItem className="flex flex-col">
-                        <label className="text-sm">{t('cronPolicy.jupyterWait')}</label>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="mt-1 w-24 font-mono"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <p className="text-xs text-red-500">{fieldState.error.message}</p>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="mt-4">
-                  <Button variant="secondary" onClick={form.handleSubmit(onSubmitWaitingJupyter)}>
-                    {t('cronPolicy.jupyterUpdate')}
-                  </Button>
+                <div className="rounded-md border p-4">
+                  <h3 className="mb-4 font-semibold">{t('cronPolicy.jupyterTitle')}</h3>
+                  <div className="flex flex-wrap gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cleanWaitingJupyter.suspend"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <span>{t('cronPolicy.suspend')}</span>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanWaitingJupyter.schedule"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.schedule')}</label>
+                          <FormControl>
+                            <Input className="mt-1 font-mono" {...field} />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="cleanWaitingJupyter.configs.waitMinitues"
+                      render={({ field, fieldState }) => (
+                        <FormItem className="flex flex-col">
+                          <label className="text-sm">{t('cronPolicy.jupyterWait')}</label>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              className="mt-1 w-24 font-mono"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          {fieldState.error && (
+                            <p className="text-xs text-red-500">{fieldState.error.message}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <Button variant="secondary" onClick={form.handleSubmit(onSubmitWaitingJupyter)}>
+                      {t('cronPolicy.jupyterUpdate')}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Form>
-        )}
-      </CardContent>
-      <CardFooter className="flex flex-wrap items-center gap-4 p-4">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button onClick={runJob} variant="destructive">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-broom"
-              >
-                <path d="m13 11 9-9" />
-                <path d="M14.6 12.6c.8.8.9 2.1.2 3L10 22l-8-8 6.4-4.8c.9-.7 2.2-.6 3 .2Z" />
-                <path d="m6.8 10.4 6.8 6.8" />
-                <path d="m5 17 1.4-1.4" />
-              </svg>
-              {t('cronPolicy.runJob')}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('cronPolicy.confirmTitle')}</AlertDialogTitle>
-              <AlertDialogDescription>{t('cronPolicy.confirmMessage')}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('cronPolicy.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmJobRun}>
-                {t('cronPolicy.confirm')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardFooter>
-    </Card>
+            </Form>
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center gap-4 p-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button onClick={runJob} variant="destructive">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-broom"
+                >
+                  <path d="m13 11 9-9" />
+                  <path d="M14.6 12.6c.8.8.9 2.1.2 3L10 22l-8-8 6.4-4.8c.9-.7 2.2-.6 3 .2Z" />
+                  <path d="m6.8 10.4 6.8 6.8" />
+                  <path d="m5 17 1.4-1.4" />
+                </svg>
+                {t('cronPolicy.runJob')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('cronPolicy.confirmTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('cronPolicy.confirmMessage')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('cronPolicy.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmJobRun}>
+                  {t('cronPolicy.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardFooter>
+      </Card>
+      <CronJobRecordsTable />
+    </div>
   )
 }
