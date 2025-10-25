@@ -538,3 +538,12 @@ export const apiAdminCronJobRecordTimeRange = () =>
 
 export const apiAdminCronJobRecordList = (param: CronJobRecordListReq) =>
   apiV1Post<IResponse<CronJobRecordListResp>>('admin/operations/cronjob/record/list', param)
+
+export interface DeleteCronJobRecordsReq {
+  id?: number[]
+  startTime?: string
+  endTime?: string
+}
+
+export const apiAdminCronJobRecordDelete = (param: DeleteCronJobRecordsReq) =>
+  apiV1Post<IResponse<{ deleted: string }>>('admin/operations/cronjob/record/delete', param)

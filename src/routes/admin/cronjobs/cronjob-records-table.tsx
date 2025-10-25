@@ -13,12 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CalendarIcon, CheckCircle2Icon, ChevronsUpDown, CopyIcon, XCircleIcon } from 'lucide-react'
+import {
+  CalendarIcon,
+  CheckCircle2Icon,
+  ChevronsUpDown,
+  CopyIcon,
+  Trash2Icon,
+  XCircleIcon,
+} from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,6 +49,12 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -55,6 +78,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import {
   CronJobRecord,
   apiAdminCronJobNameList,
+  apiAdminCronJobRecordDelete,
   apiAdminCronJobRecordList,
   apiAdminCronJobRecordTimeRange,
 } from '@/services/api/vcjob'
@@ -72,6 +96,8 @@ export default function CronJobRecordsTable() {
   const [availableJobNames, setAvailableJobNames] = useState<string[]>([])
   const [minDate, setMinDate] = useState<Date | undefined>()
   const [maxDate, setMaxDate] = useState<Date | undefined>()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [daysToDelete, setDaysToDelete] = useState<number>(1)
 
   useEffect(() => {
     const loadJobNames = async () => {
@@ -182,6 +208,29 @@ export default function CronJobRecordsTable() {
   const truncateText = (text: string, maxLength: number = 200): string => {
     if (text.length <= maxLength) return text
     return text.substring(0, maxLength) + '...'
+  }
+
+  const handleDeleteRecords = async () => {
+    try {
+      // 计算UTC时间：当前UTC时间减去指定天数
+      const endTime = new Date()
+      endTime.setUTCDate(endTime.getUTCDate() - daysToDelete)
+
+      const res = await apiAdminCronJobRecordDelete({
+        endTime: endTime.toISOString(),
+      })
+
+      if (res.code === 0 && res.data) {
+        const deletedCount = parseInt(res.data.deleted, 10) || 0
+        toast.success(t('cronJob.record.table.deleteSuccess', { count: deletedCount }))
+        setDeleteDialogOpen(false)
+        loadRecords()
+      } else {
+        toast.error(t('cronJob.record.table.deleteError') + res.msg)
+      }
+    } catch (error) {
+      toast.error(t('cronJob.record.table.deleteError') + error)
+    }
   }
 
   return (
@@ -415,32 +464,87 @@ export default function CronJobRecordsTable() {
               </Table>
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">
-                  {t('cronJob.record.table.pageSize')}:
-                </span>
-                <Select
-                  value={pageSize.toString()}
-                  onValueChange={(value) => {
-                    setPageSize(Number(value))
-                    setPageNum(1)
-                  }}
-                >
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 20, 50, 100].map((size) => (
-                      <SelectItem key={size} value={size.toString()}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <span className="text-muted-foreground text-sm">
-                  {t('cronJob.record.table.total', { total: total })}
-                </span>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">
+                    {t('cronJob.record.table.pageSize')}:
+                  </span>
+                  <Select
+                    value={pageSize.toString()}
+                    onValueChange={(value) => {
+                      setPageSize(Number(value))
+                      setPageNum(1)
+                    }}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 20, 50, 100].map((size) => (
+                        <SelectItem key={size} value={size.toString()}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-muted-foreground text-sm">
+                    {t('cronJob.record.table.total', { total: total })}
+                  </span>
+                </div>
+
+                <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2Icon className="mr-2 h-4 w-4" />
+                        {t('cronJob.record.table.deleteRecords')}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDaysToDelete(1)
+                          setDeleteDialogOpen(true)
+                        }}
+                      >
+                        {t('cronJob.record.table.delete1DayBefore')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDaysToDelete(7)
+                          setDeleteDialogOpen(true)
+                        }}
+                      >
+                        {t('cronJob.record.table.delete7DaysBefore')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDaysToDelete(15)
+                          setDeleteDialogOpen(true)
+                        }}
+                      >
+                        {t('cronJob.record.table.delete15DaysBefore')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t('cronJob.record.table.deleteConfirmTitle')}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('cronJob.record.table.deleteConfirmMessage', { days: daysToDelete })}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('cronJob.record.table.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteRecords}>
+                        {t('cronJob.record.table.confirmDelete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               <div className="flex items-center gap-2">
