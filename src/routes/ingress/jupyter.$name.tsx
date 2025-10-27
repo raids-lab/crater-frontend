@@ -41,7 +41,10 @@ export const Route = createFileRoute('/ingress/jupyter/$name')({
     }
 
     // try to check if connection to Jupyter Notebook is ready
-    const url = `${data.fullURL}?token=${data.token}`
+    const url = `${data.fullURL}/api/status?token=${data.token}`
+    if (import.meta.env.DEV) {
+      return
+    }
     try {
       await ky.get(url, { timeout: 5000 })
     } catch (error) {
@@ -98,8 +101,8 @@ function Refresh() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {data && data.urlWithToken && (
-            <CopyableCommand label={'Jupyter Lab'} isLink command={data.urlWithToken} />
+          {data && data.fullURL && (
+            <CopyableCommand label={'Jupyter Lab'} isLink command={data.fullURL} />
           )}
 
           <div className="grid grid-cols-2 gap-2">
@@ -196,7 +199,8 @@ function Jupyter() {
     <div className="relative h-screen w-screen">
       <BasicIframe
         title="jupyter notebook"
-        src={jupyterInfo.urlWithToken}
+        key={jupyterInfo.fullURL}
+        src={jupyterInfo.fullURL}
         className="absolute top-0 right-0 bottom-0 left-0 h-screen w-screen"
       />
       {/* Transparent overlay */}
