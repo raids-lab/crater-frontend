@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  CalendarIcon,
-  CheckCircle2Icon,
-  ChevronsUpDown,
-  CopyIcon,
-  Trash2Icon,
-  XCircleIcon,
-} from 'lucide-react'
+import { CalendarIcon, ChevronsUpDown, CopyIcon, Trash2Icon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 import { useTranslation } from 'react-i18next'
@@ -83,6 +76,8 @@ import {
   apiAdminCronJobRecordTimeRange,
 } from '@/services/api/vcjob'
 
+import CronJobRecordStatus from './cronjob-record-status'
+
 export default function CronJobRecordsTable() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
@@ -91,7 +86,7 @@ export default function CronJobRecordsTable() {
   const [pageNum, setPageNum] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [filterNames, setFilterNames] = useState<string[]>([])
-  const [filterSuccess, setFilterSuccess] = useState<string>('all')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [availableJobNames, setAvailableJobNames] = useState<string[]>([])
   const [minDate, setMinDate] = useState<Date | undefined>()
@@ -139,7 +134,7 @@ export default function CronJobRecordsTable() {
         name: filterNames.length > 0 ? filterNames : undefined,
         startTime: dateRange?.from?.toISOString(),
         endTime: dateRange?.to?.toISOString(),
-        success: filterSuccess === 'all' ? undefined : filterSuccess === 'success',
+        status: filterStatus === 'all' ? undefined : filterStatus,
         pageNum,
         pageSize,
       })
@@ -154,7 +149,7 @@ export default function CronJobRecordsTable() {
     } finally {
       setLoading(false)
     }
-  }, [filterNames, dateRange, filterSuccess, pageNum, pageSize, t])
+  }, [filterNames, dateRange, filterStatus, pageNum, pageSize, t])
 
   useEffect(() => {
     loadRecords()
@@ -208,6 +203,13 @@ export default function CronJobRecordsTable() {
   const truncateText = (text: string, maxLength: number = 200): string => {
     if (text.length <= maxLength) return text
     return text.substring(0, maxLength) + '...'
+  }
+
+  const isJobDataEmpty = (jobData?: { reminded?: string[]; deleted?: string[] }): boolean => {
+    if (!jobData) return true
+    const hasReminded = jobData.reminded && jobData.reminded.length > 0
+    const hasDeleted = jobData.deleted && jobData.deleted.length > 0
+    return !hasReminded && !hasDeleted
   }
 
   const handleDeleteRecords = async () => {
@@ -286,7 +288,7 @@ export default function CronJobRecordsTable() {
 
             <div className="flex items-center gap-2">
               <span className="text-sm">{t('cronJob.record.table.statusFilter')}:</span>
-              <Select value={filterSuccess} onValueChange={setFilterSuccess}>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -294,6 +296,7 @@ export default function CronJobRecordsTable() {
                   <SelectItem value="all">{t('cronJob.record.table.allStatus')}</SelectItem>
                   <SelectItem value="success">{t('cronJob.record.table.success')}</SelectItem>
                   <SelectItem value="failed">{t('cronJob.record.table.failed')}</SelectItem>
+                  <SelectItem value="unknown">{t('cronJob.record.table.unknown')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -396,40 +399,30 @@ export default function CronJobRecordsTable() {
                         <TableCell className="font-mono text-sm">{record.name}</TableCell>
                         <TableCell>{formatDate(record.executeTime)}</TableCell>
                         <TableCell>
-                          {record.success ? (
-                            <div className="flex items-center gap-1 text-green-600">
-                              <CheckCircle2Icon className="h-4 w-4" />
-                              <span>{t('cronJob.record.table.success')}</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-red-600">
-                              <XCircleIcon className="h-4 w-4" />
-                              <span>{t('cronJob.record.table.failed')}</span>
-                            </div>
-                          )}
+                          <CronJobRecordStatus status={record.status} />
                         </TableCell>
                         <TableCell className="max-w-xs truncate" title={record.message}>
                           {record.message || '-'}
                         </TableCell>
                         <TableCell>
-                          {record.jobData ? (
+                          {!isJobDataEmpty(record.jobData) ? (
                             <TooltipProvider>
                               <div className="flex items-center gap-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div className="cursor-help text-sm">
-                                      {record.jobData.reminded &&
-                                        record.jobData.reminded.length > 0 && (
+                                      {record.jobData!.reminded &&
+                                        record.jobData!.reminded.length > 0 && (
                                           <div>
                                             {t('cronJob.record.table.reminded')}:{' '}
-                                            {record.jobData.reminded.length}
+                                            {record.jobData!.reminded.length}
                                           </div>
                                         )}
-                                      {record.jobData.deleted &&
-                                        record.jobData.deleted.length > 0 && (
+                                      {record.jobData!.deleted &&
+                                        record.jobData!.deleted.length > 0 && (
                                           <div>
                                             {t('cronJob.record.table.deleted')}:{' '}
-                                            {record.jobData.deleted.length}
+                                            {record.jobData!.deleted.length}
                                           </div>
                                         )}
                                     </div>

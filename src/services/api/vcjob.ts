@@ -505,7 +505,7 @@ export interface CronJobRecord {
   updatedAt: string
   name: string
   executeTime: string
-  success: boolean
+  status: string
   message: string
   jobData?: {
     reminded?: string[]
@@ -517,7 +517,7 @@ export interface CronJobRecordListReq {
   name?: string[]
   startTime?: string
   endTime?: string
-  success?: boolean
+  status?: string
   pageNum: number
   pageSize: number
 }

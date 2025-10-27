@@ -242,6 +242,7 @@
   "cronJob.record.table.loadTimeRangeError": "Failed to fetch time range: ",
   "cronJob.record.table.success": "Success",
   "cronJob.record.table.failed": "Failed",
+  "cronJob.record.table.unknown": "Unknown",
   "cronJob.record.table.reminded": "Reminded",
   "cronJob.record.table.deleted": "Deleted",
   "cronJob.record.table.clearSelection": "Clear Selection",

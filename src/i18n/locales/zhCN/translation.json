@@ -242,6 +242,7 @@
   "cronJob.record.table.loadTimeRangeError": "获取时间范围失败：",
   "cronJob.record.table.success": "成功",
   "cronJob.record.table.failed": "失败",
+  "cronJob.record.table.unknown": "未知",
   "cronJob.record.table.reminded": "已提醒",
   "cronJob.record.table.deleted": "已删除",
   "cronJob.record.table.clearSelection": "清除选择",
