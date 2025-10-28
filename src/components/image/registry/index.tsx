@@ -150,10 +150,15 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
   }
 
   // 统一的移除函数(删除和取消都使用这个)
-  const { mutate: removeKaniko } = useMutation({
+  const { mutate: removeKaniko, isPending } = useMutation({
     mutationFn: (params: { idList: number[]; isCancel?: boolean }) =>
       apiRemoveKanikoList(params.idList),
     onSuccess: async (_, variables) => {
+      // 只在取消操作时等待1.5秒让后端有足够时间更新数据
+      if (variables.isCancel) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+
       await refetchImagePackList()
       if (variables.isCancel) {
         toast.success('已取消构建任务')
@@ -326,19 +331,20 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
                   kanikoInfo.status === 'Failed' ||
                   kanikoInfo.status === 'Canceled' ? (
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem disabled={isPending}>
                         <Trash2Icon className="text-destructive" />
                         删除
                       </DropdownMenuItem>
                     </AlertDialogTrigger>
                   ) : (
                     <DropdownMenuItem
+                      disabled={isPending}
                       onClick={() => {
                         removeKaniko({ idList: [kanikoInfo.ID], isCancel: true })
                       }}
                     >
                       <CircleX className="size-4 text-amber-600" />
-                      取消
+                      {isPending ? '取消中...' : '取消'}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -352,14 +358,15 @@ export const KanikoListTable: FC<KanikoListTableProps> = ({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel disabled={isPending}>取消</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
+                    disabled={isPending}
                     onClick={() => {
                       removeKaniko({ idList: [kanikoInfo.ID], isCancel: false })
                     }}
                   >
-                    删除
+                    {isPending ? '删除中...' : '删除'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

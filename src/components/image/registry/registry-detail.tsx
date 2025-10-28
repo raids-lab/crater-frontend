@@ -69,10 +69,15 @@ function RegistryInfo({ kanikoInfo, name: imageName, ...props }: DetailPageCoreP
   const isAdmin = useIsAdmin()
 
   // 统一的移除函数(删除和取消都使用这个)
-  const { mutate: removeKaniko } = useMutation({
+  const { mutate: removeKaniko, isPending } = useMutation({
     mutationFn: (params: { id: number; isCancel?: boolean; name?: string }) =>
       apiUserRemoveKanikoList([params.id]),
     onSuccess: async (_, variables) => {
+      // 只在取消操作时等待1.5秒让后端有足够时间更新数据
+      if (variables.isCancel) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+      }
+
       if (variables.isCancel) {
         // 取消操作:刷新当前页面数据
         await queryClient.invalidateQueries({ queryKey: ['imagepack', 'get'] })
@@ -153,6 +158,7 @@ function RegistryInfo({ kanikoInfo, name: imageName, ...props }: DetailPageCoreP
                     <Button
                       title="取消构建"
                       className="bg-highlight-orange hover:bg-highlight-orange/90 cursor-pointer"
+                      disabled={isPending}
                     >
                       <SquareIcon className="size-4" />
                       取消构建
@@ -167,14 +173,15 @@ function RegistryInfo({ kanikoInfo, name: imageName, ...props }: DetailPageCoreP
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>返回</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isPending}>返回</AlertDialogCancel>
                     <AlertDialogAction
                       className="bg-amber-600 hover:bg-amber-700"
+                      disabled={isPending}
                       onClick={() => {
                         removeKaniko({ id: kanikoInfo.ID, isCancel: true, name: imageName })
                       }}
                     >
-                      确认取消
+                      {isPending ? '取消中...' : '确认取消'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -184,7 +191,7 @@ function RegistryInfo({ kanikoInfo, name: imageName, ...props }: DetailPageCoreP
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <div>
-                    <Button variant="destructive" title="删除镜像">
+                    <Button variant="destructive" title="删除镜像" disabled={isPending}>
                       <Trash2Icon className="size-4" />
                       删除镜像
                     </Button>
@@ -198,14 +205,15 @@ function RegistryInfo({ kanikoInfo, name: imageName, ...props }: DetailPageCoreP
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isPending}>取消</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
+                      disabled={isPending}
                       onClick={() => {
                         removeKaniko({ id: kanikoInfo.ID, isCancel: false, name: imageName })
                       }}
                     >
-                      删除
+                      {isPending ? '删除中...' : '删除'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
